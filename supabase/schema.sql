@@ -26,7 +26,8 @@ create table if not exists public.profiles (
   social_media text,
   notes text,
   photo_url text,
-  created_at timestamp with time zone default now()
+  created_at timestamp with time zone default now(),
+  unique (couple_id, role)
 );
 
 create table if not exists public.budget_categories (
@@ -75,6 +76,7 @@ create table if not exists public.invitees (
   address text,
   rsvp_status text check (rsvp_status in ('Attending', 'Declined', 'Pending')) default 'Pending',
   attendance_status text check (attendance_status in ('Confirmed', 'Unconfirmed')) default 'Unconfirmed',
+  group_name text check (group_name in ('Family', 'Friends', 'VIP')) default 'Friends',
   notes text,
   created_at timestamp with time zone default now()
 );
@@ -85,10 +87,12 @@ create table if not exists public.invitations (
   theme text,
   primary_color text,
   font_family text,
-  background_music text,
+  background_music boolean default true,
+  music_url text,
   story text,
   confirmed boolean default false,
-  created_at timestamp with time zone default now()
+  created_at timestamp with time zone default now(),
+  unique (couple_id)
 );
 
 create table if not exists public.notifications (

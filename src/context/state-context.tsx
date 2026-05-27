@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import {
   Profile,
   BudgetItem,
@@ -14,6 +14,8 @@ import {
   initialInvitees,
   initialInvitationSettings
 } from '../lib/mockData';
+import { isSupabaseConfigured, supabase } from '../lib/supabase';
+import { useAuth } from './auth-context';
 
 interface NotificationItem {
   id: string;
@@ -33,33 +35,20 @@ interface StateContextType {
   invitation: InvitationSettings;
   weddingDate: string;
   notifications: NotificationItem[];
-  
   updateGroom: (profile: Partial<Profile>) => void;
   updateBride: (profile: Partial<Profile>) => void;
   setWeddingDate: (date: string) => void;
-  
-  // Budget CRUD
   addBudgetItem: (item: Omit<BudgetItem, 'id'>) => void;
   updateBudgetItem: (id: string, updates: Partial<BudgetItem>) => void;
   deleteBudgetItem: (id: string) => void;
-  
-  // Courses Toggles
   toggleLesson: (courseId: string, lessonId: string) => void;
-  
-  // Invitees CRUD
   addInvitee: (invitee: Omit<Invitee, 'id'>) => void;
   updateInvitee: (id: string, updates: Partial<Invitee>) => void;
   deleteInvitee: (id: string) => void;
-  
-  // Invitation CRUD
   updateInvitation: (updates: Partial<InvitationSettings>) => void;
   confirmInvitation: () => void;
-  
-  // Notification controls
   addNotification: (title: string, desc: string, type: NotificationItem['type']) => void;
   markNotificationsAsRead: () => void;
-  
-  // Calculated metrics
   budgetProgress: number;
   coursesProgress: number;
   profilesProgress: number;
@@ -68,8 +57,101 @@ interface StateContextType {
 
 const StateContext = createContext<StateContextType | undefined>(undefined);
 
+const profileFromRow = (row: any, fallback: Profile): Profile => ({
+  fullName: row?.full_name ?? fallback.fullName,
+  nickname: row?.nickname ?? fallback.nickname,
+  birthDate: row?.birth_date ?? fallback.birthDate,
+  occupation: row?.occupation ?? fallback.occupation,
+  address: row?.address ?? fallback.address,
+  phone: row?.phone ?? fallback.phone,
+  socialMedia: row?.social_media ?? fallback.socialMedia,
+  notes: row?.notes ?? fallback.notes,
+  photoUrl: row?.photo_url ?? fallback.photoUrl,
+});
+
+const profileToRow = (profile: Profile, coupleId: string, role: 'groom' | 'bride') => ({
+  couple_id: coupleId,
+  role,
+  full_name: profile.fullName,
+  nickname: profile.nickname,
+  birth_date: profile.birthDate,
+  occupation: profile.occupation,
+  address: profile.address,
+  phone: profile.phone,
+  social_media: profile.socialMedia,
+  notes: profile.notes,
+  photo_url: profile.photoUrl,
+});
+
+const budgetFromRow = (row: any): BudgetItem => ({
+  id: row.id,
+  itemName: row.item_name,
+  category: row.budget_categories?.name ?? 'Other',
+  estimatedBudget: Number(row.estimated_budget ?? 0),
+  actualBudget: Number(row.actual_budget ?? 0),
+  status: row.status ?? 'Unpaid',
+  dueDate: row.due_date ?? new Date().toISOString().split('T')[0],
+  notes: row.notes ?? '',
+});
+
+const budgetToRow = (item: Omit<BudgetItem, 'id'> | BudgetItem, coupleId: string, categoryIds: Record<string, string>) => ({
+  couple_id: coupleId,
+  category_id: categoryIds[item.category] ?? null,
+  item_name: item.itemName,
+  estimated_budget: item.estimatedBudget,
+  actual_budget: item.actualBudget,
+  status: item.status,
+  due_date: item.dueDate,
+  notes: item.notes,
+});
+
+const inviteeFromRow = (row: any): Invitee => ({
+  id: row.id,
+  name: row.name,
+  phone: row.phone ?? '',
+  address: row.address ?? '',
+  rsvpStatus: row.rsvp_status ?? 'Pending',
+  attendanceStatus: row.attendance_status ?? 'Unconfirmed',
+  group: row.group_name ?? 'Friends',
+  notes: row.notes ?? '',
+});
+
+const inviteeToRow = (invitee: Omit<Invitee, 'id'> | Invitee, coupleId: string) => ({
+  couple_id: coupleId,
+  name: invitee.name,
+  phone: invitee.phone,
+  address: invitee.address,
+  rsvp_status: invitee.rsvpStatus,
+  attendance_status: invitee.attendanceStatus,
+  group_name: invitee.group,
+  notes: invitee.notes,
+});
+
+const invitationFromRow = (row: any, fallback: InvitationSettings): InvitationSettings => ({
+  theme: row?.theme ?? fallback.theme,
+  primaryColor: row?.primary_color ?? fallback.primaryColor,
+  fontFamily: row?.font_family ?? fallback.fontFamily,
+  backgroundMusic: row?.background_music ?? fallback.backgroundMusic,
+  musicUrl: row?.music_url ?? fallback.musicUrl,
+  story: row?.story ?? fallback.story,
+  confirmed: row?.confirmed ?? fallback.confirmed,
+});
+
+const invitationToRow = (settings: InvitationSettings, coupleId: string) => ({
+  couple_id: coupleId,
+  theme: settings.theme,
+  primary_color: settings.primaryColor,
+  font_family: settings.fontFamily,
+  background_music: settings.backgroundMusic,
+  music_url: settings.musicUrl,
+  story: settings.story,
+  confirmed: settings.confirmed,
+});
+
 export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Try to load state from localStorage or fallback to initial mocks
+  const { user } = useAuth();
+  const [coupleId, setCoupleId] = useState<string | null>(null);
+  const [categoryIds, setCategoryIds] = useState<Record<string, string>>({});
   const [groom, setGroom] = useState<Profile>(initialGroomProfile);
   const [bride, setBride] = useState<Profile>(initialBrideProfile);
   const [budgetItems, setBudgetItems] = useState<BudgetItem[]>(initialBudgetItems);
@@ -79,16 +161,19 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [weddingDate, setWeddingDateState] = useState<string>("2027-05-27");
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
 
-  useEffect(() => {
-    // Sync keys in localStorage
-    const getLocal = <T,>(key: string, fallback: T): T => {
-      if (typeof window !== 'undefined') {
-        const val = localStorage.getItem(key);
-        return val ? JSON.parse(val) : fallback;
-      }
-      return fallback;
-    };
-    
+  const getLocal = <T,>(key: string, fallback: T): T => {
+    if (typeof window === 'undefined') return fallback;
+    const val = localStorage.getItem(key);
+    return val ? JSON.parse(val) : fallback;
+  };
+
+  const saveLocal = (key: string, data: unknown) => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(key, JSON.stringify(data));
+    }
+  };
+
+  const loadLocalState = () => {
     setGroom(getLocal('ayunikah_groom', initialGroomProfile));
     setBride(getLocal('ayunikah_bride', initialBrideProfile));
     setBudgetItems(getLocal('ayunikah_budget', initialBudgetItems));
@@ -96,21 +181,78 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setInvitees(getLocal('ayunikah_invitees', initialInvitees));
     setInvitation(getLocal('ayunikah_invitation', initialInvitationSettings));
     setWeddingDateState(getLocal('ayunikah_wedding_date', "2027-05-27"));
-    setNotifications(getLocal('ayunikah_notifications', [
-      {
-        id: "n-start",
-        title: "Welcome to Ayunikah!",
-        description: "Your luxurious, smart marriage preparation dashboard is ready. Begin organizing your dream future together.",
-        timestamp: new Date(Date.now() - 3600000).toLocaleString(),
-        isRead: false,
-        type: "system"
-      }
-    ]));
-  }, []);
-
-  const saveLocal = (key: string, data: any) => {
-    localStorage.setItem(key, JSON.stringify(data));
+    setNotifications(getLocal('ayunikah_notifications', [{
+      id: "n-start",
+      title: "Welcome to Ayunikah!",
+      description: "Your Supabase-ready marriage preparation dashboard is ready.",
+      timestamp: new Date(Date.now() - 3600000).toLocaleString(),
+      isRead: false,
+      type: "system"
+    }]));
   };
+
+  useEffect(() => {
+    const loadSupabaseState = async () => {
+      if (!isSupabaseConfigured || !supabase || !user) {
+        loadLocalState();
+        return;
+      }
+
+      await supabase.from('users').upsert({ id: user.id, email: user.email });
+
+      const { data: existingCouple } = await supabase
+        .from('couples')
+        .select('id,wedding_date')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      const couple = existingCouple ?? (await supabase
+        .from('couples')
+        .insert({ user_id: user.id, wedding_date: "2027-05-27" })
+        .select('id,wedding_date')
+        .single()).data;
+
+      if (!couple) return;
+
+      setCoupleId(couple.id);
+      setWeddingDateState(couple.wedding_date ?? "2027-05-27");
+
+      const { data: categories } = await supabase.from('budget_categories').select('id,name');
+      const ids = Object.fromEntries((categories ?? []).map((cat: any) => [cat.name, cat.id]));
+      setCategoryIds(ids);
+
+      const { data: profiles } = await supabase.from('profiles').select('*').eq('couple_id', couple.id);
+      const groomRow = profiles?.find((profile: any) => profile.role === 'groom');
+      const brideRow = profiles?.find((profile: any) => profile.role === 'bride');
+
+      if (groomRow) setGroom(profileFromRow(groomRow, initialGroomProfile));
+      if (brideRow) setBride(profileFromRow(brideRow, initialBrideProfile));
+      if (!groomRow) await supabase.from('profiles').insert(profileToRow(initialGroomProfile, couple.id, 'groom'));
+      if (!brideRow) await supabase.from('profiles').insert(profileToRow(initialBrideProfile, couple.id, 'bride'));
+
+      const { data: budgetRows } = await supabase
+        .from('budget_items')
+        .select('*,budget_categories(name)')
+        .eq('couple_id', couple.id)
+        .order('due_date');
+      if (budgetRows?.length) setBudgetItems(budgetRows.map(budgetFromRow));
+
+      const { data: inviteeRows } = await supabase.from('invitees').select('*').eq('couple_id', couple.id).order('created_at');
+      if (inviteeRows?.length) setInvitees(inviteeRows.map(inviteeFromRow));
+
+      const { data: invitationRow } = await supabase.from('invitations').select('*').eq('couple_id', couple.id).maybeSingle();
+      if (invitationRow) {
+        setInvitation(invitationFromRow(invitationRow, initialInvitationSettings));
+      } else {
+        await supabase.from('invitations').insert(invitationToRow(initialInvitationSettings, couple.id));
+      }
+
+      setCourses(getLocal('ayunikah_courses', initialCourses));
+      setNotifications(getLocal('ayunikah_notifications', []));
+    };
+
+    loadSupabaseState();
+  }, [user]);
 
   const addNotification = (title: string, description: string, type: NotificationItem['type']) => {
     const newItem: NotificationItem = {
@@ -122,7 +264,7 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       type
     };
     setNotifications(prev => {
-      const updated = [newItem, ...prev].slice(0, 20); // Keep max 20
+      const updated = [newItem, ...prev].slice(0, 20);
       saveLocal('ayunikah_notifications', updated);
       return updated;
     });
@@ -132,27 +274,35 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setGroom(prev => {
       const updated = { ...prev, ...updates };
       saveLocal('ayunikah_groom', updated);
+      if (isSupabaseConfigured && supabase && coupleId) {
+        void supabase.from('profiles').upsert(profileToRow(updated, coupleId, 'groom'), { onConflict: 'couple_id,role' });
+      }
       return updated;
     });
-    addNotification("Groom Profile Updated", "The details for Groom Ronal have been refreshed.", "system");
+    addNotification("Groom Profile Updated", "The groom profile has been refreshed.", "system");
   };
 
   const updateBride = (updates: Partial<Profile>) => {
     setBride(prev => {
       const updated = { ...prev, ...updates };
       saveLocal('ayunikah_bride', updated);
+      if (isSupabaseConfigured && supabase && coupleId) {
+        void supabase.from('profiles').upsert(profileToRow(updated, coupleId, 'bride'), { onConflict: 'couple_id,role' });
+      }
       return updated;
     });
-    addNotification("Bride Profile Updated", "The details for Bride Lidya have been refreshed.", "system");
+    addNotification("Bride Profile Updated", "The bride profile has been refreshed.", "system");
   };
 
   const setWeddingDate = (date: string) => {
     setWeddingDateState(date);
     saveLocal('ayunikah_wedding_date', date);
+    if (isSupabaseConfigured && supabase && coupleId) {
+      void supabase.from('couples').update({ wedding_date: date }).eq('id', coupleId);
+    }
     addNotification("Wedding Date Rescheduled", `Your romantic date is now locked in for ${new Date(date).toLocaleDateString('en-US', { dateStyle: 'long' })}.`, "system");
   };
 
-  // Budget CRUD
   const addBudgetItem = (item: Omit<BudgetItem, 'id'>) => {
     const newItem = { ...item, id: `b-${Date.now()}` };
     setBudgetItems(prev => {
@@ -160,6 +310,13 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       saveLocal('ayunikah_budget', updated);
       return updated;
     });
+
+    if (isSupabaseConfigured && supabase && coupleId) {
+      void supabase.from('budget_items').insert(budgetToRow(item, coupleId, categoryIds)).select('*,budget_categories(name)').single().then(({ data }) => {
+        if (data) setBudgetItems(prev => prev.map(existing => existing.id === newItem.id ? budgetFromRow(data) : existing));
+      });
+    }
+
     addNotification("New Budget Item Added", `"${item.itemName}" added under ${item.category}.`, "budget");
   };
 
@@ -167,62 +324,42 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setBudgetItems(prev => {
       const updated = prev.map(item => item.id === id ? { ...item, ...updates } : item);
       saveLocal('ayunikah_budget', updated);
-      
-      // Notify if status changed
-      if (updates.status) {
-        const target = prev.find(i => i.id === id);
-        if (target) {
-          addNotification("Budget Item Status Changed", `"${target.itemName}" is now marked as ${updates.status}.`, "budget");
-        }
+      const target = updated.find(item => item.id === id);
+      if (target && isSupabaseConfigured && supabase && coupleId) {
+        void supabase.from('budget_items').update(budgetToRow(target, coupleId, categoryIds)).eq('id', id);
       }
       return updated;
     });
+    if (updates.status) addNotification("Budget Item Status Changed", "A budget status was updated and synced.", "budget");
   };
 
   const deleteBudgetItem = (id: string) => {
-    const target = budgetItems.find(i => i.id === id);
+    const target = budgetItems.find(item => item.id === id);
     setBudgetItems(prev => {
       const updated = prev.filter(item => item.id !== id);
       saveLocal('ayunikah_budget', updated);
       return updated;
     });
-    if (target) {
-      addNotification("Budget Item Removed", `"${target.itemName}" was deleted from your budget sheets.`, "budget");
-    }
+    if (isSupabaseConfigured && supabase) void supabase.from('budget_items').delete().eq('id', id);
+    if (target) addNotification("Budget Item Removed", `"${target.itemName}" was deleted from your budget sheets.`, "budget");
   };
 
-  // Course Actions
   const toggleLesson = (courseId: string, lessonId: string) => {
     setCourses(prev => {
       const updated = prev.map(course => {
         if (course.id !== courseId) return course;
-        
-        const updatedLessons = course.lessons.map(lesson => 
-          lesson.id === lessonId ? { ...lesson, completed: !lesson.completed } : lesson
-        );
-        
-        const isAllLessonsCompleted = updatedLessons.every(l => l.completed);
-        
+        const updatedLessons = course.lessons.map(lesson => lesson.id === lessonId ? { ...lesson, completed: !lesson.completed } : lesson);
+        const isAllLessonsCompleted = updatedLessons.every(lesson => lesson.completed);
         if (isAllLessonsCompleted && !course.completed) {
-          // Fire notification asynchronously to avoid updates during render
-          setTimeout(() => {
-            addNotification("Course Accomplished! 🎉", `Excellent progress! You have completed the entire course: "${course.title}".`, "course");
-          }, 100);
+          setTimeout(() => addNotification("Course Accomplished!", `Excellent progress! You completed "${course.title}".`, "course"), 100);
         }
-        
-        return {
-          ...course,
-          lessons: updatedLessons,
-          completed: isAllLessonsCompleted
-        };
+        return { ...course, lessons: updatedLessons, completed: isAllLessonsCompleted };
       });
-      
       saveLocal('ayunikah_courses', updated);
       return updated;
     });
   };
 
-  // Invitees CRUD
   const addInvitee = (item: Omit<Invitee, 'id'>) => {
     const newItem = { ...item, id: `i-${Date.now()}` };
     setInvitees(prev => {
@@ -230,6 +367,13 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       saveLocal('ayunikah_invitees', updated);
       return updated;
     });
+
+    if (isSupabaseConfigured && supabase && coupleId) {
+      void supabase.from('invitees').insert(inviteeToRow(item, coupleId)).select('*').single().then(({ data }) => {
+        if (data) setInvitees(prev => prev.map(existing => existing.id === newItem.id ? inviteeFromRow(data) : existing));
+      });
+    }
+
     addNotification("New Guest Added", `${item.name} has been added to your invitation guest list.`, "invitee");
   };
 
@@ -237,46 +381,40 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setInvitees(prev => {
       const updated = prev.map(item => item.id === id ? { ...item, ...updates } : item);
       saveLocal('ayunikah_invitees', updated);
-      
-      // Notify on RSVP updates
-      if (updates.rsvpStatus) {
-        const target = prev.find(i => i.id === id);
-        if (target) {
-          addNotification("RSVP Status Updated", `${target.name} marked response as ${updates.rsvpStatus}.`, "invitee");
-        }
+      const target = updated.find(item => item.id === id);
+      if (target && isSupabaseConfigured && supabase && coupleId) {
+        void supabase.from('invitees').update(inviteeToRow(target, coupleId)).eq('id', id);
       }
       return updated;
     });
+    if (updates.rsvpStatus) addNotification("RSVP Status Updated", `A guest marked response as ${updates.rsvpStatus}.`, "invitee");
   };
 
   const deleteInvitee = (id: string) => {
-    const target = invitees.find(i => i.id === id);
+    const target = invitees.find(item => item.id === id);
     setInvitees(prev => {
       const updated = prev.filter(item => item.id !== id);
       saveLocal('ayunikah_invitees', updated);
       return updated;
     });
-    if (target) {
-      addNotification("Guest Removed", `${target.name} was removed from the list.`, "invitee");
-    }
+    if (isSupabaseConfigured && supabase) void supabase.from('invitees').delete().eq('id', id);
+    if (target) addNotification("Guest Removed", `${target.name} was removed from the list.`, "invitee");
   };
 
-  // Invitation
   const updateInvitation = (updates: Partial<InvitationSettings>) => {
     setInvitation(prev => {
       const updated = { ...prev, ...updates };
       saveLocal('ayunikah_invitation', updated);
+      if (isSupabaseConfigured && supabase && coupleId) {
+        void supabase.from('invitations').upsert(invitationToRow(updated, coupleId), { onConflict: 'couple_id' });
+      }
       return updated;
     });
   };
 
   const confirmInvitation = () => {
-    setInvitation(prev => {
-      const updated = { ...prev, confirmed: true };
-      saveLocal('ayunikah_invitation', updated);
-      return updated;
-    });
-    addNotification("Invitation Builder Locked! 💖", "Your digital invitation build is confirmed. It is now open for RSVPs and synced with Main Board.", "system");
+    updateInvitation({ confirmed: true });
+    addNotification("Invitation Builder Locked!", "Your digital invitation build is confirmed and synced with Main Board.", "system");
   };
 
   const markNotificationsAsRead = () => {
@@ -287,24 +425,14 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     });
   };
 
-  // CALCULATE PROGRESS METRICS Dynamically
-  
-  // 1. Budget progress: Paid / Deposit items vs total tracked
   const paidCount = budgetItems.filter(i => i.status === 'Paid' || i.status === 'Deposit Paid').length;
   const budgetProgress = budgetItems.length > 0 ? (paidCount / budgetItems.length) * 100 : 0;
-
-  // 2. Course progress: total lessons completed / total lessons
   const totalLessons = courses.reduce((acc, curr) => acc + curr.lessons.length, 0);
   const completedLessons = courses.reduce((acc, curr) => acc + curr.lessons.filter(l => l.completed).length, 0);
   const coursesProgress = totalLessons > 0 ? (completedLessons / totalLessons) * 100 : 0;
-
-  // 3. Profiles progress: percent of fields with values
   const groomFields = [groom.fullName, groom.nickname, groom.address, groom.phone, groom.socialMedia, groom.notes].filter(Boolean).length;
   const brideFields = [bride.fullName, bride.nickname, bride.address, bride.phone, bride.socialMedia, bride.notes].filter(Boolean).length;
   const profilesProgress = ((groomFields + brideFields) / 12) * 100;
-
-  // 4. Overall Progress: Weighted sum
-  // Budget = 30%, Courses = 35%, Invitation Locked = 20%, Profiles = 15%
   const invitationProgress = invitation.confirmed ? 100 : 0;
   const overallProgress = (budgetProgress * 0.3) + (coursesProgress * 0.35) + (invitationProgress * 0.2) + (profilesProgress * 0.15);
 
