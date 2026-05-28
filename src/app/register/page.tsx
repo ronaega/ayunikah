@@ -46,9 +46,9 @@ export default function RegisterPage() {
     
     setLoading(true);
     try {
-      const success = await register(normalizedEmail, password);
-      if (!success) {
-        setError('Registration failed. This email may already be registered, or Supabase may require email confirmation.');
+      const result = await register(normalizedEmail, password);
+      if (!result.success) {
+        setError(result.message ?? 'Registration failed. This email may already be registered, or Supabase may require email confirmation.');
         return;
       }
       router.replace('/dashboard');

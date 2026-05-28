@@ -13,10 +13,15 @@ interface LocalAccount extends User {
   password: string;
 }
 
+interface AuthResult {
+  success: boolean;
+  message?: string;
+}
+
 interface AuthContextType {
   user: User | null;
-  login: (email: string, password: string) => Promise<boolean>;
-  register: (email: string, password: string) => Promise<boolean>;
+  login: (email: string, password: string) => Promise<AuthResult>;
+  register: (email: string, password: string) => Promise<AuthResult>;
   logout: () => void;
   isLoading: boolean;
 }
@@ -112,7 +117,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []);
 
-  const login = async (email: string, password: string): Promise<boolean> => {
+  const login = async (email: string, password: string): Promise<AuthResult> => {
     setIsLoading(true);
     const normalizedEmail = email.trim().toLowerCase();
 
@@ -120,11 +125,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const { data, error } = await supabase.auth.signInWithPassword({ email: normalizedEmail, password });
       setIsLoading(false);
 
-      if (error || !data.session?.user?.email) return false;
+      if (error || !data.session?.user?.email) {
+        const message = error?.message?.toLowerCase().includes('email not confirmed')
+          ? 'Please confirm this email in Supabase Auth, or turn off email confirmation while testing.'
+          : 'No matching account was found, or the password is incorrect.';
+        return { success: false, message };
+      }
 
       localStorage.setItem(POST_AUTH_REDIRECT_KEY, '/dashboard');
       setSupabaseUser(data.session.user);
-      return true;
+      return { success: true };
     }
 
     const account = getLocalAccounts().find(
@@ -133,7 +143,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     if (!account) {
       setIsLoading(false);
-      return false;
+      return {
+        success: false,
+        message: 'No local account matched this email and password. Register again in this browser or connect Supabase.',
+      };
     }
 
     const session = { id: account.id, email: account.email, coupleId: account.coupleId };
@@ -141,10 +154,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.setItem(POST_AUTH_REDIRECT_KEY, '/dashboard');
     setUser(session);
     setIsLoading(false);
-    return true;
+    return { success: true };
   };
 
-  const register = async (email: string, password: string): Promise<boolean> => {
+  const register = async (email: string, password: string): Promise<AuthResult> => {
     setIsLoading(true);
     const normalizedEmail = email.trim().toLowerCase();
 
@@ -153,31 +166,45 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error || !data.user?.email) {
         setIsLoading(false);
-        return false;
+        const alreadyRegistered = error?.message?.toLowerCase().includes('registered');
+        return {
+          success: false,
+          message: alreadyRegistered
+            ? 'This email is already registered in Supabase. Try logging in, or delete the user from Supabase Auth Users.'
+            : error?.message ?? 'Registration failed. Please check your Supabase Auth settings.',
+        };
       }
 
       if (data.session?.user?.email) {
         localStorage.setItem(POST_AUTH_REDIRECT_KEY, '/dashboard');
         setSupabaseUser(data.session.user);
         setIsLoading(false);
-        return true;
+        return { success: true };
       }
 
       const signIn = await supabase.auth.signInWithPassword({ email: normalizedEmail, password });
       setIsLoading(false);
 
-      if (signIn.error || !signIn.data.session?.user?.email) return false;
+      if (signIn.error || !signIn.data.session?.user?.email) {
+        return {
+          success: false,
+          message: 'Account created, but Supabase requires email confirmation before login. Disable email confirmation for testing or confirm the email.',
+        };
+      }
 
       localStorage.setItem(POST_AUTH_REDIRECT_KEY, '/dashboard');
       setSupabaseUser(signIn.data.session.user);
-      return true;
+      return { success: true };
     }
 
     const accounts = getLocalAccounts();
 
     if (accounts.some((account) => account.email === normalizedEmail)) {
       setIsLoading(false);
-      return false;
+      return {
+        success: false,
+        message: 'This email already exists in local browser storage. Log in with the same password or clear site data.',
+      };
     }
 
     const id = `local-user-${createLocalId()}`;
@@ -187,7 +214,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.setItem(POST_AUTH_REDIRECT_KEY, '/dashboard');
     setUser(session);
     setIsLoading(false);
-    return true;
+    return { success: true };
   };
 
   const logout = async () => {

@@ -36,9 +36,9 @@ export default function LoginPage() {
     
     setLoading(true);
     try {
-      const success = await login(normalizedEmail, password);
-      if (!success) {
-        setError('We could not find that account. Check your details or register first.');
+      const result = await login(normalizedEmail, password);
+      if (!result.success) {
+        setError(result.message ?? 'We could not find that account. Check your details or register first.');
         return;
       }
       router.replace('/dashboard');

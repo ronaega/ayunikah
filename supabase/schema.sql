@@ -1,14 +1,14 @@
 create extension if not exists "pgcrypto";
 
 create table if not exists public.users (
-  id uuid primary key default gen_random_uuid(),
+  id uuid primary key references auth.users(id) on delete cascade,
   email text unique not null,
   created_at timestamp with time zone default now()
 );
 
 create table if not exists public.couples (
   id uuid primary key default gen_random_uuid(),
-  user_id uuid references public.users(id) on delete cascade,
+  user_id uuid unique references public.users(id) on delete cascade,
   wedding_date date,
   created_at timestamp with time zone default now()
 );
@@ -144,3 +144,27 @@ values
   ('Entertainment'),
   ('Other')
 on conflict (name) do nothing;
+
+create or replace function public.handle_new_auth_user()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  insert into public.users (id, email)
+  values (new.id, coalesce(new.email, ''))
+  on conflict (id) do update set email = excluded.email;
+
+  insert into public.couples (user_id, wedding_date)
+  values (new.id, '2027-05-27')
+  on conflict (user_id) do nothing;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created
+after insert on auth.users
+for each row execute function public.handle_new_auth_user();
