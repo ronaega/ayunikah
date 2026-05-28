@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useAuth } from '../context/auth-context';
+import { useMarriageState } from '../context/state-context';
 
 export const menuItems = [
   { id: 'board', label: 'Main Board', icon: LayoutDashboard },
@@ -32,6 +33,8 @@ export const Sidebar: React.FC = () => {
   const router = useRouter();
   const pathname = usePathname();
   const { logout, user } = useAuth();
+  const { groom, bride } = useMarriageState();
+  const coupleLabel = [bride.nickname || bride.fullName, groom.nickname || groom.fullName].filter(Boolean).join(' & ') || 'New Couple';
 
   const handleTabChange = (tabId: string) => {
     router.push(`${pathname}?tab=${tabId}`);
@@ -109,8 +112,8 @@ export const Sidebar: React.FC = () => {
               {user?.email ? user.email.charAt(0).toUpperCase() : 'L'}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-semibold text-elegant truncate">Lidya & Ronal</p>
-              <p className="text-[10px] text-elegant/60 truncate">{user?.email || 'demo@ayunikah.com'}</p>
+              <p className="text-xs font-semibold text-elegant truncate">{coupleLabel}</p>
+              <p className="text-[10px] text-elegant/60 truncate">{user?.email || 'No account'}</p>
             </div>
           </div>
           

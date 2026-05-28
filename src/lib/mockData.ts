@@ -53,27 +53,27 @@ export interface InvitationSettings {
 }
 
 export const initialGroomProfile: Profile = {
-  fullName: "Ronal Erlangga",
-  nickname: "Ronal",
-  birthDate: "1998-08-12",
-  occupation: "Senior Software Engineer",
-  address: "Graha Estetika Residence, Blok B3, Jakarta",
-  phone: "+62 812-3456-7890",
-  socialMedia: "@ronal.erl",
-  notes: "Looking forward to building our dream home and a calm, happy, loving household together.",
-  photoUrl: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=300"
+  fullName: "",
+  nickname: "",
+  birthDate: "",
+  occupation: "",
+  address: "",
+  phone: "",
+  socialMedia: "",
+  notes: "",
+  photoUrl: ""
 };
 
 export const initialBrideProfile: Profile = {
-  fullName: "Lidya Ayu Sukamawandira",
-  nickname: "Lidya",
-  birthDate: "2000-05-15",
-  occupation: "Creative Director & Designer",
-  address: "Permata Hijau Mansions, Tower C, Jakarta",
-  phone: "+62 899-8765-4321",
-  socialMedia: "@lidyayu.suka",
-  notes: "Excited for our romantic wedding day, sharing laughs, and growing old alongside my best friend.",
-  photoUrl: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=300"
+  fullName: "",
+  nickname: "",
+  birthDate: "",
+  occupation: "",
+  address: "",
+  phone: "",
+  socialMedia: "",
+  notes: "",
+  photoUrl: ""
 };
 
 export const initialBudgetItems: BudgetItem[] = [

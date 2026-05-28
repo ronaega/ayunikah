@@ -75,6 +75,7 @@ export const InvitationPage: React.FC = () => {
   const [fontFamily, setFontFamily] = useState(invitation.fontFamily);
   const [musicOn, setMusicOn] = useState(invitation.backgroundMusic);
   const [storyText, setStoryText] = useState(invitation.story);
+  const coupleLabel = [bride.nickname || bride.fullName, groom.nickname || groom.fullName].filter(Boolean).join(' & ') || 'Your names';
 
   // Filtered invitees
   const filteredGuests = invitees.filter(guest => {
@@ -155,7 +156,8 @@ export const InvitationPage: React.FC = () => {
   };
 
   const generateWhatsAppMessage = (guest: any) => {
-    const text = `Hi ${guest.name}! 💖 We are happy to invite you to celebrate our wedding. Ronal & Lidya are getting married at Amanjiwo Resort on May 27, 2027. View details and confirm your RSVP here: https://ayunikah.vercel.app/invite?id=demo-couple-123`;
+    const formattedDate = new Date(weddingDate).toLocaleDateString('en-US', { dateStyle: 'long' });
+    const text = `Hi ${guest.name}! We are happy to invite you to celebrate our wedding. ${coupleLabel} are getting married at Amanjiwo Resort on ${formattedDate}. View details and confirm your RSVP here: https://ayunikah.vercel.app/invite`;
     return `https://api.whatsapp.com/send?phone=${guest.phone.replace(/[-+\s]/g, '')}&text=${encodeURIComponent(text)}`;
   };
 
@@ -461,7 +463,7 @@ export const InvitationPage: React.FC = () => {
                     className="text-2xl font-black text-elegant leading-none"
                     style={{ fontFamily: fontFamily }}
                   >
-                    {bride.nickname} & {groom.nickname}
+                    {coupleLabel}
                   </h1>
                   
                   <p className="text-[8px] text-elegant/70 tracking-widest uppercase font-semibold">
@@ -671,13 +673,13 @@ export const InvitationPage: React.FC = () => {
               
               <div className="p-3 bg-cream-50 rounded-2xl border border-blush-200/20 text-xs text-elegant/80 leading-relaxed mb-4">
                 <span className="font-extrabold text-[9px] uppercase tracking-wider text-rosegold-400 block mb-1">Pre-filled Invitation Text</span>
-                "Hi {shareGuest.name}! 💖 We are happy to invite you to celebrate our wedding. Ronal & Lidya are getting married at Amanjiwo Resort on May 27, 2027. View details and confirm your RSVP here..."
+                "Hi {shareGuest.name}! We are happy to invite you to celebrate our wedding. {coupleLabel} are getting married at Amanjiwo Resort..."
               </div>
 
               <div className="flex gap-3">
                 <button
                   onClick={() => {
-                    navigator.clipboard.writeText(`Hi ${shareGuest.name}! 💖 Ronal & Lidya invite you to celebrate our wedding. View details & confirm RSVP: https://ayunikah.vercel.app/invite?id=demo-couple-123`);
+                    navigator.clipboard.writeText(`Hi ${shareGuest.name}! ${coupleLabel} invite you to celebrate our wedding. View details & confirm RSVP: https://ayunikah.vercel.app/invite`);
                     setShareGuest(null);
                   }}
                   className="flex-1 py-3 glass text-elegant rounded-xl text-xs font-bold border border-blush-200/20"

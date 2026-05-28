@@ -24,7 +24,7 @@ import { getCountdown, cn } from '../lib/utils';
 
 export const Navbar: React.FC = () => {
   const router = useRouter();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
   const { 
     weddingDate, 
     notifications, 
@@ -105,6 +105,8 @@ export const Navbar: React.FC = () => {
   };
 
   const unreadCount = notifications.filter(n => !n.isRead).length;
+  const coupleLabel = [bride.nickname || bride.fullName, groom.nickname || groom.fullName].filter(Boolean).join(' & ') || 'New Couple';
+  const profileInitial = coupleLabel === 'New Couple' ? (user?.email?.charAt(0).toUpperCase() ?? 'A') : coupleLabel.charAt(0).toUpperCase();
 
   const getNotificationIcon = (type: string) => {
     switch(type) {
@@ -139,7 +141,7 @@ export const Navbar: React.FC = () => {
       {/* Center Message: Greeting */}
       <div className="hidden lg:flex items-center gap-2 text-sm font-semibold text-elegant italic">
         <Sparkles className="w-4 h-4 text-rosegold-400 animate-pulse" />
-        <span>"Preparing beautifully with love, {bride.nickname} & {groom.nickname}."</span>
+        <span>"Preparing beautifully with love, {coupleLabel}."</span>
       </div>
 
       {/* Right Controls */}
@@ -238,9 +240,9 @@ export const Navbar: React.FC = () => {
             className="flex items-center gap-2 p-1.5 pr-3 rounded-2xl hover:bg-blush-100/30 text-elegant transition-colors"
           >
             <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-blush-200 to-lavender-200 text-elegant font-bold flex items-center justify-center text-xs shadow-sm">
-              L
+              {profileInitial}
             </div>
-            <span className="hidden sm:block text-xs font-semibold">{bride.nickname} & {groom.nickname}</span>
+            <span className="hidden sm:block text-xs font-semibold">{coupleLabel}</span>
             <ChevronDown className="w-3.5 h-3.5 text-elegant/50" />
           </button>
 

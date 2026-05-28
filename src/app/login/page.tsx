@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Heart, Mail, Lock, Eye, EyeOff, Sparkles, ArrowRight } from 'lucide-react';
+import { Heart, Mail, Lock, Eye, EyeOff, ArrowRight } from 'lucide-react';
 import { useAuth } from '../../context/auth-context';
 
 export default function LoginPage() {
@@ -28,7 +28,11 @@ export default function LoginPage() {
     
     setLoading(true);
     try {
-      await login(email, password);
+      const success = await login(email, password);
+      if (!success) {
+        setError('Invalid credentials, please try again.');
+        return;
+      }
       router.push('/dashboard');
     } catch (err) {
       setError('Invalid credentials, please try again.');
@@ -80,7 +84,7 @@ export default function LoginPage() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="lidya.ayunikah@gmail.com"
+                placeholder="couple@example.com"
                 required
                 className="w-full bg-white/70 dark:bg-elegant-800 border border-blush-200/30 focus:border-rosegold-400/50 rounded-2xl py-3 pl-11 pr-4 text-xs text-elegant focus:outline-none transition-colors shadow-sm"
               />
@@ -141,15 +145,6 @@ export default function LoginPage() {
             )}
           </button>
         </form>
-
-        {/* Demo Credentials Tips */}
-        <div className="mt-6 p-3 rounded-2xl bg-cream-50/50 border border-blush-200/20 text-[10px] text-elegant/70">
-          <p className="font-semibold text-rosegold-400 uppercase tracking-wider mb-1 flex items-center gap-1.5">
-            <Sparkles className="w-3.5 h-3.5" />
-            Instant Demo Account
-          </p>
-          You can use any email and password combination to login and instantly access the pre-configured marriage dashboard!
-        </div>
 
         {/* Register Redirect */}
         <div className="mt-8 text-center text-xs text-elegant/60">

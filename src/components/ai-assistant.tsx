@@ -20,7 +20,7 @@ export const AIAssistant: React.FC = () => {
     {
       id: "init",
       sender: "ai",
-      text: "Halo, Lidya & Ronal! 💖 I am Ayunikah's emotional AI assistant, your digital marriage coach. Ask me about your overall progress, budget status, courses, invitation updates, or ask me for daily marriage wisdom!",
+      text: "Halo! I am Ayunikah's emotional AI assistant, your digital marriage coach. Ask me about your overall progress, budget status, courses, invitation updates, or ask me for daily marriage wisdom!",
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     }
   ]);
@@ -38,6 +38,8 @@ export const AIAssistant: React.FC = () => {
     groom,
     bride
   } = useMarriageState();
+  const groomLabel = groom.nickname || groom.fullName || 'the groom';
+  const brideLabel = bride.nickname || bride.fullName || 'the bride';
 
   // Scroll to bottom on new messages
   useEffect(() => {
@@ -80,7 +82,7 @@ export const AIAssistant: React.FC = () => {
 - 💰 Budget paid status: **${paidItemsCount}/${budgetItems.length} items**
 - 📚 Marriage course completion: **${completedLessons}/${totalLessons} lessons**
 - 💌 Digital invitation: **${invitation.confirmed ? 'Confirmed & Live' : 'Still in Builder draft'}**
-- 🤵👰 Personal profile: **Filled beautifully**
+- 🤵👰 Personal profile: **${groom.fullName || bride.fullName ? 'In progress' : 'Not filled yet'}**
 Keep up the good work! Step-by-step you are getting closer to your big day!`;
       } 
       else if (query.includes('budget') || query.includes('cost') || query.includes('money') || query.includes('expense')) {
@@ -93,8 +95,8 @@ I recommend checking the Budget Sheet to review category pie charts and ensure s
       }
       else if (query.includes('course') || query.includes('learn') || query.includes('knowledge') || query.includes('lesson')) {
         aiText = `You have completed **${completedLessons} out of ${totalLessons} lessons** (${((completedLessons/totalLessons)*100).toFixed(0)}%).
-- Groom Ronal is taking: *"${courses.find(c => c.category === 'Groom Only')?.title}"*
-- Bride Lidya is taking: *"${courses.find(c => c.category === 'Bride Only')?.title}"*
+- ${groomLabel} can take: *"${courses.find(c => c.category === 'Groom Only')?.title}"*
+- ${brideLabel} can take: *"${courses.find(c => c.category === 'Bride Only')?.title}"*
 I highly recommend sitting down together this weekend to complete the lesson: *"${courses.flatMap(c => c.lessons).find(l => !l.completed)?.title || 'Constructive Conflict'}"* under the Couple Together category. It's a wonderful intimacy booster!`;
       }
       else if (query.includes('invite') || query.includes('guest') || query.includes('rsvp')) {
@@ -110,11 +112,11 @@ You can use our WhatsApp sharing tool inside the Invitation tab to prompt guests
 > *"${randomQuote}"*
 Remember, marriage is a commitment of love and a daily choice to lift each other up. 💖`;
       }
-      else if (query.includes('ronal')) {
-        aiText = `Ronal is doing an incredible job preparing! He is registered as a Senior Software Engineer, and is currently taking the course: *"Becoming an Emotionally Intelligent Husband"*. Lidya is lucky to have a partner so committed to emotional growth!`;
+      else if (query.includes('groom')) {
+        aiText = `${groomLabel} can use the profile card to add personal details, a photo, and private notes. The groom-focused course is: *"${courses.find(c => c.category === 'Groom Only')?.title}"*.`;
       }
-      else if (query.includes('lidya')) {
-        aiText = `Lidya is your amazing creative companion! She is the designer behind your wedding layouts. She is currently studying the Bride preparation courses. Be sure to leave a romantic note in her Profile card today!`;
+      else if (query.includes('bride')) {
+        aiText = `${brideLabel} can use the profile card to add personal details, a photo, and private notes. The bride-focused course is: *"${courses.find(c => c.category === 'Bride Only')?.title}"*.`;
       }
       else if (query.includes('hello') || query.includes('hi') || query.includes('hey') || query.includes('help')) {
         aiText = `Hello! How can I assist you in your marriage journey today? Ask me about:

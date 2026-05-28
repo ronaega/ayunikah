@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Heart, Mail, Lock, User, Sparkles, ArrowRight } from 'lucide-react';
+import { Heart, Mail, Lock, ArrowRight } from 'lucide-react';
 import { useAuth } from '../../context/auth-context';
 
 export default function RegisterPage() {
@@ -33,7 +33,11 @@ export default function RegisterPage() {
     
     setLoading(true);
     try {
-      await register(email, password);
+      const success = await register(email, password);
+      if (!success) {
+        setError('Registration failed. This email may already be registered or Supabase may need email confirmation.');
+        return;
+      }
       router.push('/dashboard');
     } catch (err) {
       setError('Registration failed, please try again.');

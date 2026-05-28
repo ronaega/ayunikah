@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { 
   UserSquare2, 
@@ -13,7 +13,8 @@ import {
   Save, 
   Edit3, 
   Sparkles,
-  Link as LinkIcon
+  Link as LinkIcon,
+  Camera
 } from 'lucide-react';
 import { useMarriageState } from '../../context/state-context';
 
@@ -32,6 +33,7 @@ export const ProfilePage: React.FC = () => {
   const [groomPhone, setGroomPhone] = useState(groom.phone);
   const [groomSocial, setGroomSocial] = useState(groom.socialMedia);
   const [groomNotes, setGroomNotes] = useState(groom.notes);
+  const [groomPhoto, setGroomPhoto] = useState(groom.photoUrl ?? '');
 
   // Bride Form States
   const [brideName, setBrideName] = useState(bride.fullName);
@@ -42,6 +44,43 @@ export const ProfilePage: React.FC = () => {
   const [bridePhone, setBridePhone] = useState(bride.phone);
   const [brideSocial, setBrideSocial] = useState(bride.socialMedia);
   const [brideNotes, setBrideNotes] = useState(bride.notes);
+  const [bridePhoto, setBridePhoto] = useState(bride.photoUrl ?? '');
+
+  useEffect(() => {
+    setGroomName(groom.fullName);
+    setGroomNick(groom.nickname);
+    setGroomBirth(groom.birthDate);
+    setGroomOcc(groom.occupation);
+    setGroomAddr(groom.address);
+    setGroomPhone(groom.phone);
+    setGroomSocial(groom.socialMedia);
+    setGroomNotes(groom.notes);
+    setGroomPhoto(groom.photoUrl ?? '');
+  }, [groom]);
+
+  useEffect(() => {
+    setBrideName(bride.fullName);
+    setBrideNick(bride.nickname);
+    setBrideBirth(bride.birthDate);
+    setBrideOcc(bride.occupation);
+    setBrideAddr(bride.address);
+    setBridePhone(bride.phone);
+    setBrideSocial(bride.socialMedia);
+    setBrideNotes(bride.notes);
+    setBridePhoto(bride.photoUrl ?? '');
+  }, [bride]);
+
+  const handlePhotoFile = (file: File | undefined, onLoad: (dataUrl: string) => void) => {
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        onLoad(reader.result);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
 
   const handleSaveGroom = () => {
     updateGroom({
@@ -52,7 +91,8 @@ export const ProfilePage: React.FC = () => {
       address: groomAddr,
       phone: groomPhone,
       socialMedia: groomSocial,
-      notes: groomNotes
+      notes: groomNotes,
+      photoUrl: groomPhoto
     });
     setIsEditingGroom(false);
   };
@@ -66,7 +106,8 @@ export const ProfilePage: React.FC = () => {
       address: brideAddr,
       phone: bridePhone,
       socialMedia: brideSocial,
-      notes: brideNotes
+      notes: brideNotes,
+      photoUrl: bridePhoto
     });
     setIsEditingBride(false);
   };
@@ -115,20 +156,50 @@ export const ProfilePage: React.FC = () => {
 
           {/* Groom Header */}
           <div className="flex flex-col sm:flex-row items-center gap-4 border-b border-blush-200/20 pb-5">
-            <img 
-              src={groom.photoUrl} 
-              alt={groom.nickname}
-              className="w-20 h-20 rounded-2xl object-cover border border-blush-100 shadow-md"
-            />
+            {groom.photoUrl ? (
+              <img 
+                src={groom.photoUrl} 
+                alt={groom.nickname || 'Groom profile photo'}
+                className="w-20 h-20 rounded-2xl object-cover border border-blush-100 shadow-md"
+              />
+            ) : (
+              <div className="w-20 h-20 rounded-2xl border border-blush-100 shadow-md bg-white/60 flex items-center justify-center">
+                <UserSquare2 className="w-8 h-8 text-elegant/30" />
+              </div>
+            )}
             <div className="text-center sm:text-left">
               <span className="text-[9px] uppercase font-semibold text-rosegold-400 tracking-wider">The Groom</span>
-              <h3 className="text-lg font-black text-elegant leading-none mt-1">{groom.fullName}</h3>
-              <p className="text-xs text-elegant/60 mt-1">{groom.occupation}</p>
+              <h3 className="text-lg font-black text-elegant leading-none mt-1">{groom.fullName || 'Profile not filled'}</h3>
+              <p className="text-xs text-elegant/60 mt-1">{groom.occupation || 'Add occupation'}</p>
             </div>
           </div>
 
           {/* Groom Fields Form */}
-          <div className="mt-6 space-y-4 flex-1">
+            <div className="mt-6 space-y-4 flex-1">
+            {isEditingGroom && (
+              <div>
+                <label className="text-[9px] uppercase font-extrabold tracking-widest text-elegant/60 block mb-1">Profile Picture</label>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <input
+                    type="url"
+                    value={groomPhoto}
+                    onChange={(e) => setGroomPhoto(e.target.value)}
+                    placeholder="Paste image URL or upload a photo"
+                    className="w-full bg-white/70 dark:bg-elegant-800 border border-blush-200/30 focus:border-rosegold-400/50 rounded-xl px-3 py-2 text-xs text-elegant focus:outline-none"
+                  />
+                  <label className="shrink-0 px-3 py-2 glass text-elegant hover:bg-blush-100/25 rounded-xl text-[10px] font-bold border border-blush-200/30 flex items-center justify-center gap-1.5 cursor-pointer transition-colors">
+                    <Camera className="w-3.5 h-3.5 text-rosegold-400" />
+                    Upload
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => handlePhotoFile(e.target.files?.[0], setGroomPhoto)}
+                    />
+                  </label>
+                </div>
+              </div>
+            )}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="text-[9px] uppercase font-extrabold tracking-widest text-elegant/60 block mb-1">Full Name</label>
@@ -140,7 +211,7 @@ export const ProfilePage: React.FC = () => {
                     className="w-full bg-white/70 dark:bg-elegant-800 border border-blush-200/30 focus:border-rosegold-400/50 rounded-xl px-3 py-2 text-xs text-elegant focus:outline-none"
                   />
                 ) : (
-                  <p className="text-xs text-elegant font-bold">{groom.fullName}</p>
+                  <p className="text-xs text-elegant font-bold">{groom.fullName || '-'}</p>
                 )}
               </div>
 
@@ -154,7 +225,7 @@ export const ProfilePage: React.FC = () => {
                     className="w-full bg-white/70 dark:bg-elegant-800 border border-blush-200/30 focus:border-rosegold-400/50 rounded-xl px-3 py-2 text-xs text-elegant focus:outline-none"
                   />
                 ) : (
-                  <p className="text-xs text-elegant font-bold">{groom.nickname}</p>
+                  <p className="text-xs text-elegant font-bold">{groom.nickname || '-'}</p>
                 )}
               </div>
             </div>
@@ -170,7 +241,7 @@ export const ProfilePage: React.FC = () => {
                     className="w-full bg-white/70 dark:bg-elegant-800 border border-blush-200/30 focus:border-rosegold-400/50 rounded-xl px-3 py-2 text-xs text-elegant focus:outline-none"
                   />
                 ) : (
-                  <p className="text-xs text-elegant font-bold">{new Date(groom.birthDate).toLocaleDateString('en-US', { dateStyle: 'medium' })}</p>
+                  <p className="text-xs text-elegant font-bold">{groom.birthDate ? new Date(groom.birthDate).toLocaleDateString('en-US', { dateStyle: 'medium' }) : '-'}</p>
                 )}
               </div>
 
@@ -184,7 +255,7 @@ export const ProfilePage: React.FC = () => {
                     className="w-full bg-white/70 dark:bg-elegant-800 border border-blush-200/30 focus:border-rosegold-400/50 rounded-xl px-3 py-2 text-xs text-elegant focus:outline-none"
                   />
                 ) : (
-                  <p className="text-xs text-elegant font-bold">{groom.occupation}</p>
+                  <p className="text-xs text-elegant font-bold">{groom.occupation || '-'}</p>
                 )}
               </div>
             </div>
@@ -201,7 +272,7 @@ export const ProfilePage: React.FC = () => {
               ) : (
                 <p className="text-xs text-elegant font-bold flex items-center gap-1.5">
                   <Phone className="w-3.5 h-3.5 text-rosegold-400" />
-                  {groom.phone}
+                  {groom.phone || '-'}
                 </p>
               )}
             </div>
@@ -217,7 +288,7 @@ export const ProfilePage: React.FC = () => {
               ) : (
                 <p className="text-xs text-elegant font-bold flex items-start gap-1.5">
                   <MapPin className="w-4 h-4 text-rosegold-400 shrink-0 mt-0.5" />
-                  {groom.address}
+                  {groom.address || '-'}
                 </p>
               )}
             </div>
@@ -235,7 +306,7 @@ export const ProfilePage: React.FC = () => {
                 ) : (
                   <p className="text-xs text-elegant font-bold flex items-center gap-1.5">
                     <LinkIcon className="w-3.5 h-3.5 text-rosegold-400" />
-                    {groom.socialMedia}
+                    {groom.socialMedia || '-'}
                   </p>
                 )}
               </div>
@@ -254,7 +325,7 @@ export const ProfilePage: React.FC = () => {
                 />
               ) : (
                 <p className="text-xs text-elegant/80 leading-relaxed italic">
-                  "{groom.notes}"
+                  {groom.notes ? `"${groom.notes}"` : '-'}
                 </p>
               )}
             </div>
@@ -288,20 +359,50 @@ export const ProfilePage: React.FC = () => {
 
           {/* Bride Header */}
           <div className="flex flex-col sm:flex-row items-center gap-4 border-b border-blush-200/20 pb-5">
-            <img 
-              src={bride.photoUrl} 
-              alt={bride.nickname}
-              className="w-20 h-20 rounded-2xl object-cover border border-blush-100 shadow-md"
-            />
+            {bride.photoUrl ? (
+              <img 
+                src={bride.photoUrl} 
+                alt={bride.nickname || 'Bride profile photo'}
+                className="w-20 h-20 rounded-2xl object-cover border border-blush-100 shadow-md"
+              />
+            ) : (
+              <div className="w-20 h-20 rounded-2xl border border-blush-100 shadow-md bg-white/60 flex items-center justify-center">
+                <UserSquare2 className="w-8 h-8 text-elegant/30" />
+              </div>
+            )}
             <div className="text-center sm:text-left">
               <span className="text-[9px] uppercase font-semibold text-rosegold-400 tracking-wider">The Bride</span>
-              <h3 className="text-lg font-black text-elegant leading-none mt-1">{bride.fullName}</h3>
-              <p className="text-xs text-elegant/60 mt-1">{bride.occupation}</p>
+              <h3 className="text-lg font-black text-elegant leading-none mt-1">{bride.fullName || 'Profile not filled'}</h3>
+              <p className="text-xs text-elegant/60 mt-1">{bride.occupation || 'Add occupation'}</p>
             </div>
           </div>
 
           {/* Bride Fields Form */}
           <div className="mt-6 space-y-4 flex-1">
+            {isEditingBride && (
+              <div>
+                <label className="text-[9px] uppercase font-extrabold tracking-widest text-elegant/60 block mb-1">Profile Picture</label>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <input
+                    type="url"
+                    value={bridePhoto}
+                    onChange={(e) => setBridePhoto(e.target.value)}
+                    placeholder="Paste image URL or upload a photo"
+                    className="w-full bg-white/70 dark:bg-elegant-800 border border-blush-200/30 focus:border-rosegold-400/50 rounded-xl px-3 py-2 text-xs text-elegant focus:outline-none"
+                  />
+                  <label className="shrink-0 px-3 py-2 glass text-elegant hover:bg-blush-100/25 rounded-xl text-[10px] font-bold border border-blush-200/30 flex items-center justify-center gap-1.5 cursor-pointer transition-colors">
+                    <Camera className="w-3.5 h-3.5 text-rosegold-400" />
+                    Upload
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => handlePhotoFile(e.target.files?.[0], setBridePhoto)}
+                    />
+                  </label>
+                </div>
+              </div>
+            )}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="text-[9px] uppercase font-extrabold tracking-widest text-elegant/60 block mb-1">Full Name</label>
@@ -313,7 +414,7 @@ export const ProfilePage: React.FC = () => {
                     className="w-full bg-white/70 dark:bg-elegant-800 border border-blush-200/30 focus:border-rosegold-400/50 rounded-xl px-3 py-2 text-xs text-elegant focus:outline-none"
                   />
                 ) : (
-                  <p className="text-xs text-elegant font-bold">{bride.fullName}</p>
+                  <p className="text-xs text-elegant font-bold">{bride.fullName || '-'}</p>
                 )}
               </div>
 
@@ -327,7 +428,7 @@ export const ProfilePage: React.FC = () => {
                     className="w-full bg-white/70 dark:bg-elegant-800 border border-blush-200/30 focus:border-rosegold-400/50 rounded-xl px-3 py-2 text-xs text-elegant focus:outline-none"
                   />
                 ) : (
-                  <p className="text-xs text-elegant font-bold">{bride.nickname}</p>
+                  <p className="text-xs text-elegant font-bold">{bride.nickname || '-'}</p>
                 )}
               </div>
             </div>
@@ -343,7 +444,7 @@ export const ProfilePage: React.FC = () => {
                     className="w-full bg-white/70 dark:bg-elegant-800 border border-blush-200/30 focus:border-rosegold-400/50 rounded-xl px-3 py-2 text-xs text-elegant focus:outline-none"
                   />
                 ) : (
-                  <p className="text-xs text-elegant font-bold">{new Date(bride.birthDate).toLocaleDateString('en-US', { dateStyle: 'medium' })}</p>
+                  <p className="text-xs text-elegant font-bold">{bride.birthDate ? new Date(bride.birthDate).toLocaleDateString('en-US', { dateStyle: 'medium' }) : '-'}</p>
                 )}
               </div>
 
@@ -357,7 +458,7 @@ export const ProfilePage: React.FC = () => {
                     className="w-full bg-white/70 dark:bg-elegant-800 border border-blush-200/30 focus:border-rosegold-400/50 rounded-xl px-3 py-2 text-xs text-elegant focus:outline-none"
                   />
                 ) : (
-                  <p className="text-xs text-elegant font-bold">{bride.occupation}</p>
+                  <p className="text-xs text-elegant font-bold">{bride.occupation || '-'}</p>
                 )}
               </div>
             </div>
@@ -374,7 +475,7 @@ export const ProfilePage: React.FC = () => {
               ) : (
                 <p className="text-xs text-elegant font-bold flex items-center gap-1.5">
                   <Phone className="w-3.5 h-3.5 text-rosegold-400" />
-                  {bride.phone}
+                  {bride.phone || '-'}
                 </p>
               )}
             </div>
@@ -390,7 +491,7 @@ export const ProfilePage: React.FC = () => {
               ) : (
                 <p className="text-xs text-elegant font-bold flex items-start gap-1.5">
                   <MapPin className="w-4 h-4 text-rosegold-400 shrink-0 mt-0.5" />
-                  {bride.address}
+                  {bride.address || '-'}
                 </p>
               )}
             </div>
@@ -408,7 +509,7 @@ export const ProfilePage: React.FC = () => {
                 ) : (
                   <p className="text-xs text-elegant font-bold flex items-center gap-1.5">
                     <LinkIcon className="w-3.5 h-3.5 text-rosegold-400" />
-                    {bride.socialMedia}
+                    {bride.socialMedia || '-'}
                   </p>
                 )}
               </div>
@@ -427,7 +528,7 @@ export const ProfilePage: React.FC = () => {
                 />
               ) : (
                 <p className="text-xs text-elegant/80 leading-relaxed italic">
-                  "{bride.notes}"
+                  {bride.notes ? `"${bride.notes}"` : '-'}
                 </p>
               )}
             </div>

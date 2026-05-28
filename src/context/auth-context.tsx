@@ -9,6 +9,10 @@ interface User {
   coupleId: string;
 }
 
+interface LocalAccount extends User {
+  password: string;
+}
+
 interface AuthContextType {
   user: User | null;
   login: (email: string, password: string) => Promise<boolean>;
@@ -18,6 +22,23 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+const LOCAL_ACCOUNTS_KEY = 'ayunikah_accounts';
+const LOCAL_SESSION_KEY = 'ayunikah_session';
+
+const getLocalAccounts = (): LocalAccount[] => {
+  if (typeof window === 'undefined') return [];
+
+  try {
+    return JSON.parse(localStorage.getItem(LOCAL_ACCOUNTS_KEY) ?? '[]');
+  } catch {
+    return [];
+  }
+};
+
+const saveLocalAccounts = (accounts: LocalAccount[]) => {
+  localStorage.setItem(LOCAL_ACCOUNTS_KEY, JSON.stringify(accounts));
+};
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -43,17 +64,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
 
-      const storedUser = localStorage.getItem('ayunikah_session');
+      const storedUser = localStorage.getItem(LOCAL_SESSION_KEY);
       if (storedUser) {
-        setUser(JSON.parse(storedUser));
-      } else {
-        const demoUser = {
-          id: "demo-user-123",
-          email: "lidya.ayunikah@gmail.com",
-          coupleId: "demo-couple-123"
-        };
-        localStorage.setItem('ayunikah_session', JSON.stringify(demoUser));
-        setUser(demoUser);
+        const parsedUser = JSON.parse(storedUser);
+        if (parsedUser?.id === 'demo-user-123') {
+          localStorage.removeItem(LOCAL_SESSION_KEY);
+        } else {
+          setUser(parsedUser);
+        }
       }
       setIsLoading(false);
     };
@@ -99,9 +117,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return true;
     }
 
-    await new Promise((resolve) => setTimeout(resolve, 800));
-    const session = { id: "demo-user-123", email, coupleId: "demo-couple-123" };
-    localStorage.setItem('ayunikah_session', JSON.stringify(session));
+    const normalizedEmail = email.trim().toLowerCase();
+    const account = getLocalAccounts().find(
+      (item) => item.email === normalizedEmail && item.password === password
+    );
+
+    if (!account) {
+      setIsLoading(false);
+      return false;
+    }
+
+    const session = { id: account.id, email: account.email, coupleId: account.coupleId };
+    localStorage.setItem(LOCAL_SESSION_KEY, JSON.stringify(session));
     setUser(session);
     setIsLoading(false);
     return true;
@@ -124,9 +151,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return true;
     }
 
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    const session = { id: "demo-user-123", email, coupleId: "demo-couple-123" };
-    localStorage.setItem('ayunikah_session', JSON.stringify(session));
+    const normalizedEmail = email.trim().toLowerCase();
+    const accounts = getLocalAccounts();
+
+    if (accounts.some((account) => account.email === normalizedEmail)) {
+      setIsLoading(false);
+      return false;
+    }
+
+    const id = `local-user-${crypto.randomUUID()}`;
+    const session = { id, email: normalizedEmail, coupleId: `local-couple-${id}` };
+    saveLocalAccounts([...accounts, { ...session, password }]);
+    localStorage.setItem(LOCAL_SESSION_KEY, JSON.stringify(session));
     setUser(session);
     setIsLoading(false);
     return true;
@@ -137,7 +173,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await supabase.auth.signOut();
     }
 
-    localStorage.removeItem('ayunikah_session');
+    localStorage.removeItem(LOCAL_SESSION_KEY);
     setUser(null);
   };
 

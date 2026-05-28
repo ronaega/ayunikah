@@ -161,6 +161,8 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [weddingDate, setWeddingDateState] = useState<string>("2027-05-27");
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
 
+  const localKey = (key: string) => user ? `ayunikah_${user.id}_${key}` : `ayunikah_guest_${key}`;
+
   const getLocal = <T,>(key: string, fallback: T): T => {
     if (typeof window === 'undefined') return fallback;
     const val = localStorage.getItem(key);
@@ -174,14 +176,14 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   const loadLocalState = () => {
-    setGroom(getLocal('ayunikah_groom', initialGroomProfile));
-    setBride(getLocal('ayunikah_bride', initialBrideProfile));
-    setBudgetItems(getLocal('ayunikah_budget', initialBudgetItems));
-    setCourses(getLocal('ayunikah_courses', initialCourses));
-    setInvitees(getLocal('ayunikah_invitees', initialInvitees));
-    setInvitation(getLocal('ayunikah_invitation', initialInvitationSettings));
-    setWeddingDateState(getLocal('ayunikah_wedding_date', "2027-05-27"));
-    setNotifications(getLocal('ayunikah_notifications', [{
+    setGroom(getLocal(localKey('groom'), initialGroomProfile));
+    setBride(getLocal(localKey('bride'), initialBrideProfile));
+    setBudgetItems(getLocal(localKey('budget'), initialBudgetItems));
+    setCourses(getLocal(localKey('courses'), initialCourses));
+    setInvitees(getLocal(localKey('invitees'), initialInvitees));
+    setInvitation(getLocal(localKey('invitation'), initialInvitationSettings));
+    setWeddingDateState(getLocal(localKey('wedding_date'), "2027-05-27"));
+    setNotifications(getLocal(localKey('notifications'), [{
       id: "n-start",
       title: "Welcome to Ayunikah!",
       description: "Your Supabase-ready marriage preparation dashboard is ready.",
@@ -227,8 +229,14 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
       if (groomRow) setGroom(profileFromRow(groomRow, initialGroomProfile));
       if (brideRow) setBride(profileFromRow(brideRow, initialBrideProfile));
-      if (!groomRow) await supabase.from('profiles').insert(profileToRow(initialGroomProfile, couple.id, 'groom'));
-      if (!brideRow) await supabase.from('profiles').insert(profileToRow(initialBrideProfile, couple.id, 'bride'));
+      if (!groomRow) {
+        setGroom(initialGroomProfile);
+        await supabase.from('profiles').insert(profileToRow(initialGroomProfile, couple.id, 'groom'));
+      }
+      if (!brideRow) {
+        setBride(initialBrideProfile);
+        await supabase.from('profiles').insert(profileToRow(initialBrideProfile, couple.id, 'bride'));
+      }
 
       const { data: budgetRows } = await supabase
         .from('budget_items')
@@ -247,8 +255,8 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         await supabase.from('invitations').insert(invitationToRow(initialInvitationSettings, couple.id));
       }
 
-      setCourses(getLocal('ayunikah_courses', initialCourses));
-      setNotifications(getLocal('ayunikah_notifications', []));
+      setCourses(getLocal(localKey('courses'), initialCourses));
+      setNotifications(getLocal(localKey('notifications'), []));
     };
 
     loadSupabaseState();
@@ -265,7 +273,7 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     };
     setNotifications(prev => {
       const updated = [newItem, ...prev].slice(0, 20);
-      saveLocal('ayunikah_notifications', updated);
+      saveLocal(localKey('notifications'), updated);
       return updated;
     });
   };
@@ -273,7 +281,7 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const updateGroom = (updates: Partial<Profile>) => {
     setGroom(prev => {
       const updated = { ...prev, ...updates };
-      saveLocal('ayunikah_groom', updated);
+      saveLocal(localKey('groom'), updated);
       if (isSupabaseConfigured && supabase && coupleId) {
         void supabase.from('profiles').upsert(profileToRow(updated, coupleId, 'groom'), { onConflict: 'couple_id,role' });
       }
@@ -285,7 +293,7 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const updateBride = (updates: Partial<Profile>) => {
     setBride(prev => {
       const updated = { ...prev, ...updates };
-      saveLocal('ayunikah_bride', updated);
+      saveLocal(localKey('bride'), updated);
       if (isSupabaseConfigured && supabase && coupleId) {
         void supabase.from('profiles').upsert(profileToRow(updated, coupleId, 'bride'), { onConflict: 'couple_id,role' });
       }
@@ -296,7 +304,7 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const setWeddingDate = (date: string) => {
     setWeddingDateState(date);
-    saveLocal('ayunikah_wedding_date', date);
+    saveLocal(localKey('wedding_date'), date);
     if (isSupabaseConfigured && supabase && coupleId) {
       void supabase.from('couples').update({ wedding_date: date }).eq('id', coupleId);
     }
@@ -307,7 +315,7 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const newItem = { ...item, id: `b-${Date.now()}` };
     setBudgetItems(prev => {
       const updated = [...prev, newItem];
-      saveLocal('ayunikah_budget', updated);
+      saveLocal(localKey('budget'), updated);
       return updated;
     });
 
@@ -323,7 +331,7 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const updateBudgetItem = (id: string, updates: Partial<BudgetItem>) => {
     setBudgetItems(prev => {
       const updated = prev.map(item => item.id === id ? { ...item, ...updates } : item);
-      saveLocal('ayunikah_budget', updated);
+      saveLocal(localKey('budget'), updated);
       const target = updated.find(item => item.id === id);
       if (target && isSupabaseConfigured && supabase && coupleId) {
         void supabase.from('budget_items').update(budgetToRow(target, coupleId, categoryIds)).eq('id', id);
@@ -337,7 +345,7 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const target = budgetItems.find(item => item.id === id);
     setBudgetItems(prev => {
       const updated = prev.filter(item => item.id !== id);
-      saveLocal('ayunikah_budget', updated);
+      saveLocal(localKey('budget'), updated);
       return updated;
     });
     if (isSupabaseConfigured && supabase) void supabase.from('budget_items').delete().eq('id', id);
@@ -355,7 +363,7 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         }
         return { ...course, lessons: updatedLessons, completed: isAllLessonsCompleted };
       });
-      saveLocal('ayunikah_courses', updated);
+      saveLocal(localKey('courses'), updated);
       return updated;
     });
   };
@@ -364,7 +372,7 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const newItem = { ...item, id: `i-${Date.now()}` };
     setInvitees(prev => {
       const updated = [...prev, newItem];
-      saveLocal('ayunikah_invitees', updated);
+      saveLocal(localKey('invitees'), updated);
       return updated;
     });
 
@@ -380,7 +388,7 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const updateInvitee = (id: string, updates: Partial<Invitee>) => {
     setInvitees(prev => {
       const updated = prev.map(item => item.id === id ? { ...item, ...updates } : item);
-      saveLocal('ayunikah_invitees', updated);
+      saveLocal(localKey('invitees'), updated);
       const target = updated.find(item => item.id === id);
       if (target && isSupabaseConfigured && supabase && coupleId) {
         void supabase.from('invitees').update(inviteeToRow(target, coupleId)).eq('id', id);
@@ -394,7 +402,7 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const target = invitees.find(item => item.id === id);
     setInvitees(prev => {
       const updated = prev.filter(item => item.id !== id);
-      saveLocal('ayunikah_invitees', updated);
+      saveLocal(localKey('invitees'), updated);
       return updated;
     });
     if (isSupabaseConfigured && supabase) void supabase.from('invitees').delete().eq('id', id);
@@ -404,7 +412,7 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const updateInvitation = (updates: Partial<InvitationSettings>) => {
     setInvitation(prev => {
       const updated = { ...prev, ...updates };
-      saveLocal('ayunikah_invitation', updated);
+      saveLocal(localKey('invitation'), updated);
       if (isSupabaseConfigured && supabase && coupleId) {
         void supabase.from('invitations').upsert(invitationToRow(updated, coupleId), { onConflict: 'couple_id' });
       }
