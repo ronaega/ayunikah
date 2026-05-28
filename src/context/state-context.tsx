@@ -55,6 +55,17 @@ interface StateContextType {
   overallProgress: number;
 }
 
+interface AppStateData {
+  groom?: Profile;
+  bride?: Profile;
+  budgetItems?: BudgetItem[];
+  courses?: Course[];
+  invitees?: Invitee[];
+  invitation?: InvitationSettings;
+  weddingDate?: string;
+  notifications?: NotificationItem[];
+}
+
 const StateContext = createContext<StateContextType | undefined>(undefined);
 
 const profileFromRow = (row: any, fallback: Profile): Profile => ({
@@ -160,6 +171,7 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [invitation, setInvitation] = useState<InvitationSettings>(initialInvitationSettings);
   const [weddingDate, setWeddingDateState] = useState<string>("2027-05-27");
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const [isRemoteLoaded, setIsRemoteLoaded] = useState(false);
 
   const localKey = (key: string) => user ? `ayunikah_${user.id}_${key}` : `ayunikah_guest_${key}`;
 
@@ -196,11 +208,18 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   useEffect(() => {
     const loadSupabaseState = async () => {
       if (!isSupabaseConfigured || !supabase || !user) {
+        setIsRemoteLoaded(false);
         loadLocalState();
         return;
       }
 
-      await supabase.from('users').upsert({ id: user.id, email: user.email });
+      setIsRemoteLoaded(false);
+
+      const { error: userError } = await supabase.from('users').upsert({ id: user.id, email: user.email });
+      if (userError) {
+        console.error('Failed to sync user row:', userError.message);
+        return;
+      }
 
       const { data: existingCouple } = await supabase
         .from('couples')
@@ -214,7 +233,10 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         .select('id,wedding_date')
         .single()).data;
 
-      if (!couple) return;
+      if (!couple) {
+        console.error('Failed to load or create couple row.');
+        return;
+      }
 
       setCoupleId(couple.id);
       setWeddingDateState(couple.wedding_date ?? "2027-05-27");
@@ -222,6 +244,26 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       const { data: categories } = await supabase.from('budget_categories').select('id,name');
       const ids = Object.fromEntries((categories ?? []).map((cat: any) => [cat.name, cat.id]));
       setCategoryIds(ids);
+
+      const { data: appStateRow } = await supabase
+        .from('app_state')
+        .select('data')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      const savedState = appStateRow?.data as AppStateData | undefined;
+      if (savedState) {
+        setGroom(savedState.groom ?? initialGroomProfile);
+        setBride(savedState.bride ?? initialBrideProfile);
+        setBudgetItems(savedState.budgetItems ?? initialBudgetItems);
+        setCourses(savedState.courses ?? initialCourses);
+        setInvitees(savedState.invitees ?? initialInvitees);
+        setInvitation(savedState.invitation ?? initialInvitationSettings);
+        setWeddingDateState(savedState.weddingDate ?? couple.wedding_date ?? "2027-05-27");
+        setNotifications(savedState.notifications ?? []);
+        setIsRemoteLoaded(true);
+        return;
+      }
 
       const { data: profiles } = await supabase.from('profiles').select('*').eq('couple_id', couple.id);
       const groomRow = profiles?.find((profile: any) => profile.role === 'groom');
@@ -243,10 +285,10 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         .select('*,budget_categories(name)')
         .eq('couple_id', couple.id)
         .order('due_date');
-      if (budgetRows?.length) setBudgetItems(budgetRows.map(budgetFromRow));
+      setBudgetItems(budgetRows?.length ? budgetRows.map(budgetFromRow) : initialBudgetItems);
 
       const { data: inviteeRows } = await supabase.from('invitees').select('*').eq('couple_id', couple.id).order('created_at');
-      if (inviteeRows?.length) setInvitees(inviteeRows.map(inviteeFromRow));
+      setInvitees(inviteeRows?.length ? inviteeRows.map(inviteeFromRow) : initialInvitees);
 
       const { data: invitationRow } = await supabase.from('invitations').select('*').eq('couple_id', couple.id).maybeSingle();
       if (invitationRow) {
@@ -257,10 +299,55 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
       setCourses(getLocal(localKey('courses'), initialCourses));
       setNotifications(getLocal(localKey('notifications'), []));
+      setIsRemoteLoaded(true);
     };
 
     loadSupabaseState();
   }, [user]);
+
+  useEffect(() => {
+    if (!isSupabaseConfigured || !supabase || !user || !coupleId || !isRemoteLoaded) return;
+
+    const client = supabase;
+    const timeout = window.setTimeout(() => {
+      const data: AppStateData = {
+        groom,
+        bride,
+        budgetItems,
+        courses,
+        invitees,
+        invitation,
+        weddingDate,
+        notifications,
+      };
+
+      void client
+        .from('app_state')
+        .upsert({
+          user_id: user.id,
+          couple_id: coupleId,
+          data,
+          updated_at: new Date().toISOString(),
+        }, { onConflict: 'user_id' })
+        .then(({ error }) => {
+          if (error) console.error('Failed to save app state:', error.message);
+        });
+    }, 350);
+
+    return () => window.clearTimeout(timeout);
+  }, [
+    bride,
+    budgetItems,
+    coupleId,
+    courses,
+    groom,
+    invitation,
+    invitees,
+    isRemoteLoaded,
+    notifications,
+    user,
+    weddingDate,
+  ]);
 
   const addNotification = (title: string, description: string, type: NotificationItem['type']) => {
     const newItem: NotificationItem = {

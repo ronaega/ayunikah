@@ -131,6 +131,13 @@ create table if not exists public.ai_logs (
   created_at timestamp with time zone default now()
 );
 
+create table if not exists public.app_state (
+  user_id uuid primary key references public.users(id) on delete cascade,
+  couple_id uuid references public.couples(id) on delete cascade,
+  data jsonb not null default '{}'::jsonb,
+  updated_at timestamp with time zone default now()
+);
+
 insert into public.budget_categories (name)
 values
   ('Venue'),
@@ -168,3 +175,64 @@ drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
 after insert on auth.users
 for each row execute function public.handle_new_auth_user();
+
+alter table public.users enable row level security;
+alter table public.couples enable row level security;
+alter table public.profiles enable row level security;
+alter table public.budget_items enable row level security;
+alter table public.course_progress enable row level security;
+alter table public.invitees enable row level security;
+alter table public.invitations enable row level security;
+alter table public.notifications enable row level security;
+alter table public.reminders enable row level security;
+alter table public.tasks enable row level security;
+alter table public.ai_logs enable row level security;
+alter table public.app_state enable row level security;
+
+drop policy if exists "Users can manage own user row" on public.users;
+create policy "Users can manage own user row" on public.users
+for all using (auth.uid() = id) with check (auth.uid() = id);
+
+drop policy if exists "Users can manage own couple" on public.couples;
+create policy "Users can manage own couple" on public.couples
+for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+drop policy if exists "Users can read budget categories" on public.budget_categories;
+create policy "Users can read budget categories" on public.budget_categories
+for select using (auth.role() = 'authenticated');
+
+drop policy if exists "Users can manage own profiles" on public.profiles;
+create policy "Users can manage own profiles" on public.profiles
+for all
+using (exists (select 1 from public.couples c where c.id = couple_id and c.user_id = auth.uid()))
+with check (exists (select 1 from public.couples c where c.id = couple_id and c.user_id = auth.uid()));
+
+drop policy if exists "Users can manage own budget items" on public.budget_items;
+create policy "Users can manage own budget items" on public.budget_items
+for all
+using (exists (select 1 from public.couples c where c.id = couple_id and c.user_id = auth.uid()))
+with check (exists (select 1 from public.couples c where c.id = couple_id and c.user_id = auth.uid()));
+
+drop policy if exists "Users can manage own invitees" on public.invitees;
+create policy "Users can manage own invitees" on public.invitees
+for all
+using (exists (select 1 from public.couples c where c.id = couple_id and c.user_id = auth.uid()))
+with check (exists (select 1 from public.couples c where c.id = couple_id and c.user_id = auth.uid()));
+
+drop policy if exists "Users can manage own invitation" on public.invitations;
+create policy "Users can manage own invitation" on public.invitations
+for all
+using (exists (select 1 from public.couples c where c.id = couple_id and c.user_id = auth.uid()))
+with check (exists (select 1 from public.couples c where c.id = couple_id and c.user_id = auth.uid()));
+
+drop policy if exists "Users can manage own app state" on public.app_state;
+create policy "Users can manage own app state" on public.app_state
+for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+drop policy if exists "Users can manage own notifications" on public.notifications;
+create policy "Users can manage own notifications" on public.notifications
+for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+drop policy if exists "Users can manage own course progress" on public.course_progress;
+create policy "Users can manage own course progress" on public.course_progress
+for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
