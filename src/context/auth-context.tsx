@@ -132,7 +132,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { success: false, message };
       }
 
-      localStorage.setItem(POST_AUTH_REDIRECT_KEY, '/dashboard');
+      localStorage.setItem(POST_AUTH_REDIRECT_KEY, JSON.stringify({ target: '/dashboard', createdAt: Date.now() }));
       setSupabaseUser(data.session.user);
       return { success: true };
     }
@@ -151,7 +151,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const session = { id: account.id, email: account.email, coupleId: account.coupleId };
     localStorage.setItem(LOCAL_SESSION_KEY, JSON.stringify(session));
-    localStorage.setItem(POST_AUTH_REDIRECT_KEY, '/dashboard');
+    localStorage.setItem(POST_AUTH_REDIRECT_KEY, JSON.stringify({ target: '/dashboard', createdAt: Date.now() }));
     setUser(session);
     setIsLoading(false);
     return { success: true };
@@ -176,7 +176,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       if (data.session?.user?.email) {
-        localStorage.setItem(POST_AUTH_REDIRECT_KEY, '/dashboard');
+        localStorage.setItem(POST_AUTH_REDIRECT_KEY, JSON.stringify({ target: '/dashboard', createdAt: Date.now() }));
         setSupabaseUser(data.session.user);
         setIsLoading(false);
         return { success: true };
@@ -192,7 +192,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         };
       }
 
-      localStorage.setItem(POST_AUTH_REDIRECT_KEY, '/dashboard');
+      localStorage.setItem(POST_AUTH_REDIRECT_KEY, JSON.stringify({ target: '/dashboard', createdAt: Date.now() }));
       setSupabaseUser(signIn.data.session.user);
       return { success: true };
     }
@@ -211,7 +211,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const session = { id, email: normalizedEmail, coupleId: `local-couple-${id}` };
     saveLocalAccounts([...accounts, { ...session, password }]);
     localStorage.setItem(LOCAL_SESSION_KEY, JSON.stringify(session));
-    localStorage.setItem(POST_AUTH_REDIRECT_KEY, '/dashboard');
+    localStorage.setItem(POST_AUTH_REDIRECT_KEY, JSON.stringify({ target: '/dashboard', createdAt: Date.now() }));
     setUser(session);
     setIsLoading(false);
     return { success: true };
