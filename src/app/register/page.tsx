@@ -51,7 +51,8 @@ export default function RegisterPage() {
         setError('Registration failed. This email may already be registered, or Supabase may require email confirmation.');
         return;
       }
-      window.location.replace('/dashboard');
+      router.replace('/dashboard');
+      router.refresh();
     } catch (err) {
       setError('Registration failed, please try again.');
     } finally {

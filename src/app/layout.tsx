@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { StateProvider } from "../context/state-context";
 import { AuthProvider } from "../context/auth-context";
 import { Base44BadgeRemover } from "../components/base44-badge-remover";
+import { PostAuthRedirect } from "../components/post-auth-redirect";
 import "../styles/globals.css";
 
 export const metadata: Metadata = {
@@ -30,6 +31,7 @@ export default function RootLayout({
         
         <AuthProvider>
           <StateProvider>
+            <PostAuthRedirect />
             {children}
             <Base44BadgeRemover />
           </StateProvider>

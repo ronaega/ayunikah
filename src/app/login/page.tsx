@@ -41,7 +41,8 @@ export default function LoginPage() {
         setError('We could not find that account. Check your details or register first.');
         return;
       }
-      window.location.replace('/dashboard');
+      router.replace('/dashboard');
+      router.refresh();
     } catch (err) {
       setError('We could not sign you in right now. Please try again.');
     } finally {

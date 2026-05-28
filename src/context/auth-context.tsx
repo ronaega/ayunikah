@@ -25,6 +25,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const LOCAL_ACCOUNTS_KEY = 'ayunikah_accounts';
 const LOCAL_SESSION_KEY = 'ayunikah_session';
+const POST_AUTH_REDIRECT_KEY = 'ayunikah_post_auth_redirect';
 
 const getLocalAccounts = (): LocalAccount[] => {
   if (typeof window === 'undefined') return [];
@@ -121,6 +122,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error || !data.session?.user?.email) return false;
 
+      localStorage.setItem(POST_AUTH_REDIRECT_KEY, '/dashboard');
       setSupabaseUser(data.session.user);
       return true;
     }
@@ -136,6 +138,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const session = { id: account.id, email: account.email, coupleId: account.coupleId };
     localStorage.setItem(LOCAL_SESSION_KEY, JSON.stringify(session));
+    localStorage.setItem(POST_AUTH_REDIRECT_KEY, '/dashboard');
     setUser(session);
     setIsLoading(false);
     return true;
@@ -154,6 +157,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       if (data.session?.user?.email) {
+        localStorage.setItem(POST_AUTH_REDIRECT_KEY, '/dashboard');
         setSupabaseUser(data.session.user);
         setIsLoading(false);
         return true;
@@ -164,6 +168,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (signIn.error || !signIn.data.session?.user?.email) return false;
 
+      localStorage.setItem(POST_AUTH_REDIRECT_KEY, '/dashboard');
       setSupabaseUser(signIn.data.session.user);
       return true;
     }
@@ -179,6 +184,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const session = { id, email: normalizedEmail, coupleId: `local-couple-${id}` };
     saveLocalAccounts([...accounts, { ...session, password }]);
     localStorage.setItem(LOCAL_SESSION_KEY, JSON.stringify(session));
+    localStorage.setItem(POST_AUTH_REDIRECT_KEY, '/dashboard');
     setUser(session);
     setIsLoading(false);
     return true;
