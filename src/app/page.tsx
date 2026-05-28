@@ -1,387 +1,350 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
-import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Heart, 
-  ArrowRight, 
-  Sparkles, 
-  Wallet, 
-  BookOpen, 
-  Send, 
-  LayoutDashboard, 
-  Bot, 
+import { AnimatePresence, motion } from 'framer-motion';
+import {
+  ArrowRight,
+  BookOpen,
+  Bot,
+  CalendarCheck,
   CheckCircle,
-  MessageSquare,
   ChevronDown,
-  Star,
-  Quote
+  Heart,
+  LayoutDashboard,
+  Menu,
+  Send,
+  ShieldCheck,
+  Wallet,
+  X,
 } from 'lucide-react';
 
 const features = [
   {
     icon: LayoutDashboard,
-    title: "Smart Dashboard Overview",
-    description: "Get real-time feedback on your marriage readiness. Monitor overall completion percentages dynamically synchronized from all modules."
+    title: 'Planning dashboard',
+    description: 'Track readiness, priorities, budgets, courses, and invitation progress from one calm workspace.',
   },
   {
     icon: Wallet,
-    title: "Data-Driven Budget Planner",
-    description: "Keep wedding costs optimized. Add, edit, and categorize items with dynamic pie charts, comparisons, and print-ready PDF reporting."
-  },
-  {
-    icon: Bot,
-    title: "State-Aware AI Coach",
-    description: "Receive personalized relationship advice, budget optimizations, and reminders based on your actual preparation progress."
-  },
-  {
-    icon: Send,
-    title: "Digital Invitation Builder",
-    description: "Design premium responsive Javanese or modern wedding invitations, complete with maps, background music, RSVP management, and mobile emulator."
+    title: 'Budget clarity',
+    description: 'Organize spending by category, paid status, and remaining commitments before costs drift.',
   },
   {
     icon: BookOpen,
-    title: "Marriage Readiness Courses",
-    description: "Expand spiritual, financial, parenting, and emotional intimacy through tailored lesson checklists designed for Grooms, Brides, and Couples."
+    title: 'Marriage preparation',
+    description: 'Work through practical lessons across communication, finances, family expectations, and intimacy.',
   },
   {
-    icon: Heart,
-    title: "Couple Journey Timeline",
-    description: "Lock in important dates and reflect on motivational couple prompts daily to ground your hearts during wedding preparation stress."
-  }
+    icon: Send,
+    title: 'Digital invitations',
+    description: 'Prepare responsive wedding invitations with RSVP tracking and shareable guest links.',
+  },
+  {
+    icon: Bot,
+    title: 'AI planning assistant',
+    description: 'Ask for next steps, budget suggestions, reminders, and relationship preparation prompts.',
+  },
+  {
+    icon: CalendarCheck,
+    title: 'Milestone rhythm',
+    description: 'Keep important dates, decisions, and remaining preparation work visible for both partners.',
+  },
 ];
 
-const testimonials = [
-  {
-    name: "Ahmad & Diana",
-    role: "Married Sept 2025",
-    text: "Ayunikah completely saved our relationship during the peak stress of our wedding planning! The emotional intelligence courses grounded us, and the state-aware budget tracker kept our finances totally transparent and balanced.",
-    rating: 5,
-    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=150"
-  },
-  {
-    name: "Farhan & Clarissa",
-    role: "Married Dec 2025",
-    text: "The digital invitation builder is phenomenal! We customised our gold theme and shared RSVP links on WhatsApp. The live mobile preview let us test RSVPs in real time. We got 100% confirmation within a week!",
-    rating: 5,
-    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=150"
-  },
-  {
-    name: "Budi & Sarah",
-    role: "Married Feb 2026",
-    text: "We loved the AI assistant. It answered questions about our pending tasks, read our budget state to advise on savings, and gave the sweetest daily quotes. It felt like having a romantic wedding coordinator in our pocket.",
-    rating: 5,
-    avatar: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&q=80&w=150"
-  }
+const aboutStats = [
+  ['64%', 'average readiness view'],
+  ['6', 'core planning modules'],
+  ['1', 'shared couple workspace'],
 ];
 
 const faqs = [
   {
-    q: "Is Ayunikah a standard wedding event planner?",
-    a: "No! Ayunikah is a holistic marriage preparation suite. While we offer industry-standard budget planners and guest lists, our main focus is emotional readiness, couple synergy, learning courses, and smart state-aware AI guidance."
+    q: 'Can we use Ayunikah without Supabase?',
+    a: 'Yes. Without Supabase environment variables, registration and login use local browser storage so the app can be tested immediately.',
   },
   {
-    q: "How does the dynamic database synchronization work?",
-    a: "Every budget item paid, course lesson ticked, or guest RSVP confirmation automatically updates your Main Board progress calculations and overall readiness tracker in real time, keeping your dashboard beautifully aligned."
+    q: 'What happens when Supabase is connected?',
+    a: 'Authentication switches to Supabase automatically using the configured public URL and anon key.',
   },
   {
-    q: "Can I deploy this platform on Vercel?",
-    a: "Absolutely! The entire architecture is optimized for Vercel. We use standard Next.js App Router endpoints, TypeScript, and client-side database persistence to ensure it runs out-of-the-box perfectly with zero configurations."
+    q: 'Is this only for wedding tasks?',
+    a: 'No. The product combines wedding operations with marriage preparation so couples can plan the event and the relationship together.',
   },
-  {
-    q: "How do I connect my live Supabase PostgreSQL database?",
-    a: "We have provided a dedicated SQL schema script and environment config instructions directly inside the Settings module of the dashboard. Connecting your live DB is as simple as adding two environment variables."
-  }
 ];
 
 export default function LandingPage() {
-  const [activeTestimonial, setActiveTestimonial] = useState(0);
-  const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [openFaq, setOpenFaq] = useState<number | null>(0);
 
-  // Auto rotate testimonials
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setActiveTestimonial(prev => (prev + 1) % testimonials.length);
-    }, 6000);
-    return () => clearInterval(timer);
-  }, []);
+  const navItems = [
+    ['About', '#about'],
+    ['Features', '#features'],
+    ['FAQ', '#faq'],
+  ];
 
   return (
-    <main className="w-full relative overflow-x-hidden min-h-screen">
-      {/* BACKGROUND PARTICLES AND SHADOWS */}
-      <div className="absolute top-[10%] left-[5%] w-96 h-96 bg-blush-200/20 rounded-full filter blur-3xl animate-float pointer-events-none" />
-      <div className="absolute top-[40%] right-[5%] w-[450px] h-[450px] bg-lavender-200/20 rounded-full filter blur-3xl animate-float pointer-events-none" style={{ animationDelay: '3s' }} />
-
-      {/* STUNNING HERO SECTION */}
-      <section className="container mx-auto px-6 pt-24 pb-16 text-center select-none relative z-10">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.8 }}
-          className="max-w-4xl mx-auto space-y-6"
-        >
-          {/* Animated Ribbon */}
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass border-blush-200/40 text-xs font-semibold text-rosegold-400 shadow-sm">
-            <Sparkles className="w-3.5 h-3.5 text-rosegold-400 animate-pulse" />
-            <span>Made with love by Lidya Ayu Sukamawandira</span>
-          </div>
-
-          {/* Headline */}
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tight text-elegant leading-tight">
-            Prepare Your Beautiful <br />
-            <span className="bg-gradient-to-r from-rosegold-400 via-peach-500 to-lavender-400 bg-clip-text text-transparent italic">
-              Future Together
+    <main className="min-h-screen w-full bg-cream-50 text-elegant">
+      <header className="sticky top-0 z-50 border-b border-elegant/10 bg-cream-50/90 backdrop-blur-xl">
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-5 sm:px-8">
+          <Link href="/" className="flex items-center gap-3" aria-label="Ayunikah home">
+            <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-elegant text-cream-50">
+              <Heart className="h-5 w-5" />
             </span>
-          </h1>
+            <span>
+              <span className="block font-playfair text-xl font-bold leading-none">Ayunikah</span>
+              <span className="block text-[10px] font-bold uppercase tracking-[0.22em] text-rosegold-400">
+                Marriage prep
+              </span>
+            </span>
+          </Link>
 
-          {/* Subheadline */}
-          <p className="text-sm sm:text-base md:text-lg text-elegant/75 max-w-2xl mx-auto leading-relaxed">
-            Ayunikah is a premium, AI-powered marriage preparation ecosystem designed to guide engaged couples through financial budgeting, relationship courses, RSVP management, and dynamic digital invitations beautifully.
-          </p>
+          <nav className="hidden items-center gap-8 text-sm font-semibold text-elegant/70 md:flex">
+            {navItems.map(([label, href]) => (
+              <a key={href} href={href} className="transition-colors hover:text-elegant">
+                {label}
+              </a>
+            ))}
+          </nav>
 
-          {/* CTAs */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-6">
-            <Link 
-              href="/register" 
-              className="px-8 py-4 bg-rosegold-400 hover:bg-rosegold-500 text-white rounded-2xl text-sm font-bold shadow-lg shadow-rosegold-200/30 transition-all flex items-center gap-2 group glowing-btn w-full sm:w-auto text-center justify-center"
-            >
-              <span>Get Started Free</span>
-              <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+          <div className="hidden items-center gap-3 md:flex">
+            <Link href="/login" className="rounded-lg px-4 py-2 text-sm font-bold text-elegant hover:bg-white">
+              Log in
             </Link>
-            <Link 
-              href="/login" 
-              className="px-8 py-4 glass text-elegant hover:bg-blush-100/30 rounded-2xl text-sm font-bold transition-all w-full sm:w-auto text-center justify-center border border-blush-200/40"
+            <Link
+              href="/register"
+              className="inline-flex items-center gap-2 rounded-lg bg-elegant px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-elegant-900"
             >
-              Login Workspace
+              Create account
+              <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
-        </motion.div>
-      </section>
 
-      {/* DASHBOARD PREVIEW MOCKUP */}
-      <section className="container mx-auto px-6 py-12 relative z-10">
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 1 }}
-          className="max-w-5xl mx-auto glass rounded-3xl p-6 md:p-8 shadow-2xl relative border border-blush-200/30 select-none overflow-hidden"
-        >
-          {/* Simulated Browser Bar */}
-          <div className="flex items-center gap-2 mb-6 border-b border-blush-200/20 pb-4">
-            <div className="w-3 h-3 rounded-full bg-rose-400" />
-            <div className="w-3 h-3 rounded-full bg-amber-400" />
-            <div className="w-3 h-3 rounded-full bg-emerald-400" />
-            <div className="bg-blush-50/50 dark:bg-elegant-800 rounded-lg text-[10px] text-elegant/60 px-4 py-1 flex-1 max-w-xs mx-auto text-center truncate font-medium">
-              https://ayunikah.vercel.app/dashboard
-            </div>
-          </div>
-
-          {/* Mockup Dashboard Content */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Widget 1 */}
-            <div className="glass-no-hover rounded-2xl p-5 border border-blush-100/30 relative overflow-hidden bg-white/40">
-              <span className="text-[10px] font-bold text-rosegold-400 uppercase tracking-wider">Overall Progress</span>
-              <p className="text-3xl font-black text-elegant mt-2">64% Completed</p>
-              <div className="w-full bg-blush-100/50 h-2 rounded-full mt-4 overflow-hidden">
-                <div className="bg-gradient-to-r from-rosegold-400 to-peach-500 h-full w-[64%] rounded-full animate-pulse" />
-              </div>
-              <p className="text-[10px] text-elegant/60 mt-3 font-medium">Budget and courses are synced in real-time.</p>
-            </div>
-
-            {/* Widget 2 */}
-            <div className="glass-no-hover rounded-2xl p-5 border border-blush-100/30 relative overflow-hidden bg-white/40">
-              <span className="text-[10px] font-bold text-rosegold-400 uppercase tracking-wider">Budget Spent</span>
-              <p className="text-3xl font-black text-elegant mt-2">IDR 176.0M</p>
-              <div className="flex items-center gap-2 mt-4 text-[10px] text-emerald-600 font-bold">
-                <CheckCircle className="w-3.5 h-3.5" />
-                <span>6/9 Items paid in full</span>
-              </div>
-              <p className="text-[10px] text-elegant/60 mt-3 font-medium">Pie charts display wedding categories.</p>
-            </div>
-
-            {/* Widget 3 */}
-            <div className="glass-no-hover rounded-2xl p-5 border border-blush-100/30 relative overflow-hidden bg-white/40">
-              <span className="text-[10px] font-bold text-rosegold-400 uppercase tracking-wider">Course Toggles</span>
-              <p className="text-3xl font-black text-elegant mt-2">8/14 Lessons</p>
-              <div className="w-full bg-blush-100/50 h-2 rounded-full mt-4 overflow-hidden">
-                <div className="bg-gradient-to-r from-purple-400 to-blush-400 h-full w-[57%] rounded-full" />
-              </div>
-              <p className="text-[10px] text-elegant/60 mt-3 font-medium">Spiritual, emotional & financial readiness.</p>
-            </div>
-          </div>
-
-          {/* AI assistant mockup bubble */}
-          <div className="mt-8 p-4 rounded-2xl border border-blush-200/30 bg-blush-50/30 flex items-start gap-4 max-w-xl">
-            <div className="w-9 h-9 rounded-full bg-blush-200 flex items-center justify-center text-elegant font-bold shadow-sm">
-              AI
-            </div>
-            <div>
-              <p className="text-xs font-bold text-elegant">Ayunikah Intelligent Advisor</p>
-              <p className="text-xs text-elegant/80 mt-1 leading-relaxed">
-                "Hi Lidya & Ronal! You still have 3 unpaid budget items due next month. I highly recommend taking the course lesson *'Joint checking account debate'* today to align your financial schedules."
-              </p>
-            </div>
-          </div>
-        </motion.div>
-      </section>
-
-      {/* PREMIUM FEATURES GRID */}
-      <section className="container mx-auto px-6 py-20 relative z-10 select-none">
-        <div className="text-center max-w-2xl mx-auto mb-16">
-          <span className="text-xs uppercase font-extrabold tracking-widest text-rosegold-400">Holistic Ecosystem</span>
-          <h2 className="text-3xl sm:text-4xl font-bold text-elegant mt-2">Everything You Need To Prepare Beautifully</h2>
-          <p className="text-xs sm:text-sm text-elegant/60 mt-3">We go beyond booking tables. We prepare your emotional, financial, and collaborative future together.</p>
+          <button
+            type="button"
+            onClick={() => setMenuOpen((value) => !value)}
+            className="flex h-10 w-10 items-center justify-center rounded-lg border border-elegant/10 bg-white md:hidden"
+            aria-label="Toggle navigation"
+          >
+            {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
-          {features.map((feature, idx) => {
-            const Icon = feature.icon;
-            
-            return (
-              <motion.div
-                key={idx}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: idx * 0.1 }}
-                className="glass rounded-3xl p-6 border border-blush-200/30 relative overflow-hidden bg-white/40"
-              >
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-blush-200 to-lavender-200 text-elegant flex items-center justify-center shadow-md mb-5">
-                  <Icon className="w-5 h-5" />
-                </div>
-                <h3 className="text-base font-bold text-elegant mb-2">{feature.title}</h3>
-                <p className="text-xs text-elegant/75 leading-relaxed">{feature.description}</p>
-              </motion.div>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* TESTIMONIALS SLIDER CAROUSEL */}
-      <section className="container mx-auto px-6 py-16 relative z-10">
-        <div className="text-center max-w-2xl mx-auto mb-12">
-          <span className="text-xs uppercase font-extrabold tracking-widest text-rosegold-400">Loved by Couples</span>
-          <h2 className="text-3xl font-bold text-elegant mt-2">Our Romantic Companionship Journeys</h2>
-        </div>
-
-        <div className="max-w-2xl mx-auto relative select-none">
-          <AnimatePresence mode="wait">
+        <AnimatePresence>
+          {menuOpen && (
             <motion.div
-              key={activeTestimonial}
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ duration: 0.5 }}
-              className="glass rounded-3xl p-8 border border-blush-200/40 relative text-center bg-white/40"
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="overflow-hidden border-t border-elegant/10 bg-cream-50 md:hidden"
             >
-              <Quote className="w-10 h-10 text-blush-300/40 mx-auto mb-4" />
-              <p className="text-xs sm:text-sm text-elegant/80 italic leading-relaxed">
-                "{testimonials[activeTestimonial].text}"
-              </p>
-              
-              <div className="flex justify-center gap-1 my-4">
-                {[...Array(testimonials[activeTestimonial].rating)].map((_, i) => (
-                  <Star key={i} className="w-4 h-4 text-amber-400 fill-amber-400" />
+              <div className="mx-auto flex max-w-7xl flex-col gap-2 px-5 py-4">
+                {navItems.map(([label, href]) => (
+                  <a
+                    key={href}
+                    href={href}
+                    onClick={() => setMenuOpen(false)}
+                    className="rounded-lg px-3 py-2 text-sm font-bold text-elegant/75 hover:bg-white"
+                  >
+                    {label}
+                  </a>
                 ))}
-              </div>
-
-              <div className="flex items-center justify-center gap-3 mt-6">
-                <img 
-                  src={testimonials[activeTestimonial].avatar} 
-                  alt={testimonials[activeTestimonial].name} 
-                  className="w-10 h-10 rounded-full object-cover shadow border border-blush-100"
-                />
-                <div className="text-left">
-                  <h4 className="text-xs font-bold text-elegant leading-none">{testimonials[activeTestimonial].name}</h4>
-                  <span className="text-[10px] text-rosegold-400 font-semibold">{testimonials[activeTestimonial].role}</span>
+                <div className="mt-2 grid grid-cols-2 gap-3">
+                  <Link href="/login" className="rounded-lg border border-elegant/15 px-4 py-3 text-center text-sm font-bold">
+                    Log in
+                  </Link>
+                  <Link href="/register" className="rounded-lg bg-elegant px-4 py-3 text-center text-sm font-bold text-white">
+                    Register
+                  </Link>
                 </div>
               </div>
             </motion.div>
-          </AnimatePresence>
+          )}
+        </AnimatePresence>
+      </header>
 
-          {/* Dots Indicator */}
-          <div className="flex justify-center gap-2 mt-6">
-            {testimonials.map((_, i) => (
-              <button
-                key={i}
-                onClick={() => setActiveTestimonial(i)}
-                className={`w-2.5 h-2.5 rounded-full transition-colors ${
-                  activeTestimonial === i ? 'bg-rosegold-400' : 'bg-blush-200/40'
-                }`}
-              />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ACCORDION FAQ SECTION */}
-      <section className="container mx-auto px-6 py-16 relative z-10">
-        <div className="text-center max-w-2xl mx-auto mb-12">
-          <span className="text-xs uppercase font-extrabold tracking-widest text-rosegold-400">Answering Questions</span>
-          <h2 className="text-3xl font-bold text-elegant mt-2">Frequently Asked Inquiries</h2>
-        </div>
-
-        <div className="max-w-2xl mx-auto space-y-4 select-none">
-          {faqs.map((faq, idx) => {
-            const isOpen = openFaq === idx;
-            
-            return (
-              <div 
-                key={idx}
-                className="glass rounded-2xl border border-blush-200/30 overflow-hidden bg-white/40"
+      <section className="relative overflow-hidden border-b border-elegant/10 bg-white">
+        <div className="mx-auto grid min-h-[calc(100vh-4rem)] max-w-7xl items-center gap-10 px-5 py-12 sm:px-8 lg:grid-cols-[1.02fr_0.98fr] lg:py-16">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="max-w-2xl"
+          >
+            <div className="mb-5 inline-flex items-center gap-2 rounded-lg border border-elegant/10 bg-cream-50 px-3 py-2 text-xs font-bold uppercase tracking-[0.16em] text-elegant/65">
+              <ShieldCheck className="h-4 w-4 text-rosegold-400" />
+              Shared planning for serious couples
+            </div>
+            <h1 className="font-playfair text-5xl font-bold leading-[1.02] text-elegant sm:text-6xl lg:text-7xl">
+              Ayunikah
+            </h1>
+            <p className="mt-5 max-w-xl text-base leading-8 text-elegant/70 sm:text-lg">
+              A professional marriage preparation workspace for engaged couples who want their wedding plans,
+              budget decisions, relationship lessons, and invitations in one organized place.
+            </p>
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <Link
+                href="/register"
+                className="inline-flex items-center justify-center gap-2 rounded-lg bg-elegant px-6 py-4 text-sm font-bold text-white transition-colors hover:bg-elegant-900"
               >
-                <button
-                  onClick={() => setOpenFaq(isOpen ? null : idx)}
-                  className="w-full flex items-center justify-between p-5 text-left text-xs sm:text-sm font-bold text-elegant"
-                >
-                  <span>{faq.q}</span>
-                  <ChevronDown className={`w-4 h-4 text-rosegold-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
-                </button>
+                Start planning
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+              <Link
+                href="/login"
+                className="inline-flex items-center justify-center rounded-lg border border-elegant/15 bg-white px-6 py-4 text-sm font-bold text-elegant transition-colors hover:bg-cream-50"
+              >
+                Open workspace
+              </Link>
+            </div>
+          </motion.div>
 
-                <AnimatePresence initial={false}>
-                  {isOpen && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      <div className="p-5 pt-0 text-xs text-elegant/70 leading-relaxed border-t border-blush-200/10">
-                        {faq.a}
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.7, delay: 0.1 }}
+            className="relative"
+          >
+            <img
+              src="https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&q=85&w=1200"
+              alt="Elegant wedding table setting"
+              className="h-[440px] w-full rounded-lg object-cover shadow-2xl shadow-elegant/15 sm:h-[560px]"
+            />
+            <div className="absolute bottom-4 left-4 right-4 rounded-lg border border-white/40 bg-white/92 p-4 shadow-xl backdrop-blur md:left-auto md:w-80">
+              <p className="text-xs font-bold uppercase tracking-[0.16em] text-rosegold-400">Live readiness</p>
+              <p className="mt-2 text-3xl font-black text-elegant">64% complete</p>
+              <div className="mt-3 h-2 overflow-hidden rounded-full bg-cream-200">
+                <div className="h-full w-[64%] rounded-full bg-elegant" />
               </div>
-            );
-          })}
+              <p className="mt-3 text-xs leading-5 text-elegant/65">
+                Budget, learning progress, and invitation tasks stay visible as your plans change.
+              </p>
+            </div>
+          </motion.div>
         </div>
       </section>
 
-      {/* PREMIUM FOOTER */}
-      <footer className="w-full relative py-12 select-none border-t border-blush-200/20 bg-gradient-to-b from-transparent to-blush-100/30">
-        <div className="container mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-blush-200 flex items-center justify-center shadow-md shadow-blush-300/40">
-              <Heart className="w-4 h-4 text-elegant fill-elegant/20" />
-            </div>
-            <div>
-              <h3 className="text-base font-bold text-elegant">Ayunikah</h3>
-              <span className="text-[10px] text-rosegold-400 uppercase tracking-widest font-semibold block">Wedding Prep companion</span>
+      <section id="about" className="border-b border-elegant/10 bg-cream-50 py-20">
+        <div className="mx-auto grid max-w-7xl gap-10 px-5 sm:px-8 lg:grid-cols-[0.9fr_1.1fr]">
+          <div>
+            <p className="text-xs font-black uppercase tracking-[0.2em] text-rosegold-400">About Ayunikah</p>
+            <h2 className="mt-3 font-playfair text-4xl font-bold leading-tight text-elegant sm:text-5xl">
+              Built for the preparation behind the celebration.
+            </h2>
+          </div>
+          <div className="space-y-6">
+            <p className="text-sm leading-7 text-elegant/72">
+              Ayunikah helps couples move beyond scattered chats, spreadsheets, and forgotten links. It gives both
+              partners a shared view of what matters: money, readiness, family details, invitations, and the
+              conversations that shape married life.
+            </p>
+            <div className="grid gap-3 sm:grid-cols-3">
+              {aboutStats.map(([value, label]) => (
+                <div key={label} className="rounded-lg border border-elegant/10 bg-white p-5">
+                  <p className="text-3xl font-black text-elegant">{value}</p>
+                  <p className="mt-2 text-xs font-semibold uppercase tracking-[0.12em] text-elegant/55">{label}</p>
+                </div>
+              ))}
             </div>
           </div>
+        </div>
+      </section>
 
-          <div className="text-xs text-elegant/60">
-            &copy; {new Date().getFullYear()} Ayunikah. All rights reserved. <br />
-            <span className="text-rosegold-400 font-bold">Made with love by Lidya Ayu Sukamawandira</span>
+      <section id="features" className="bg-white py-20">
+        <div className="mx-auto max-w-7xl px-5 sm:px-8">
+          <div className="max-w-2xl">
+            <p className="text-xs font-black uppercase tracking-[0.2em] text-rosegold-400">What is included</p>
+            <h2 className="mt-3 font-playfair text-4xl font-bold text-elegant">A complete couple workspace</h2>
           </div>
+          <div className="mt-10 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {features.map((feature, index) => {
+              const Icon = feature.icon;
 
-          <div className="flex items-center gap-6 text-xs font-semibold text-elegant/70">
-            <Link href="/login" className="hover:text-rosegold-400 transition-colors">Workspace</Link>
-            <Link href="/register" className="hover:text-rosegold-400 transition-colors">Register</Link>
-            <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="hover:text-rosegold-400 transition-colors">GitHub Code</a>
+              return (
+                <motion.article
+                  key={feature.title}
+                  initial={{ opacity: 0, y: 18 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.4, delay: index * 0.04 }}
+                  className="rounded-lg border border-elegant/10 bg-cream-50 p-6"
+                >
+                  <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-white text-elegant shadow-sm">
+                    <Icon className="h-5 w-5" />
+                  </div>
+                  <h3 className="mt-5 font-playfair text-xl font-bold text-elegant">{feature.title}</h3>
+                  <p className="mt-2 text-sm leading-6 text-elegant/68">{feature.description}</p>
+                </motion.article>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      <section className="border-y border-elegant/10 bg-[#243b3b] py-16 text-white">
+        <div className="mx-auto grid max-w-7xl items-center gap-8 px-5 sm:px-8 lg:grid-cols-[1fr_auto]">
+          <div>
+            <p className="text-xs font-black uppercase tracking-[0.2em] text-peach-200">Ready workspace</p>
+            <h2 className="mt-3 font-playfair text-4xl font-bold">Create an account and continue to the dashboard.</h2>
+            <p className="mt-4 max-w-2xl text-sm leading-7 text-white/72">
+              Local registration works immediately for testing. Add Supabase later when you need hosted authentication.
+            </p>
+          </div>
+          <Link
+            href="/register"
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-white px-6 py-4 text-sm font-bold text-[#243b3b] transition-colors hover:bg-cream-100"
+          >
+            Register now
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+      </section>
+
+      <section id="faq" className="bg-cream-50 py-20">
+        <div className="mx-auto max-w-3xl px-5 sm:px-8">
+          <p className="text-center text-xs font-black uppercase tracking-[0.2em] text-rosegold-400">Questions</p>
+          <h2 className="mt-3 text-center font-playfair text-4xl font-bold text-elegant">Useful answers before you start</h2>
+          <div className="mt-10 space-y-3">
+            {faqs.map((faq, index) => {
+              const isOpen = openFaq === index;
+
+              return (
+                <div key={faq.q} className="overflow-hidden rounded-lg border border-elegant/10 bg-white">
+                  <button
+                    type="button"
+                    onClick={() => setOpenFaq(isOpen ? null : index)}
+                    className="flex w-full items-center justify-between gap-4 p-5 text-left text-sm font-bold text-elegant"
+                  >
+                    <span>{faq.q}</span>
+                    <ChevronDown className={`h-4 w-4 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                  </button>
+                  <AnimatePresence initial={false}>
+                    {isOpen && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <p className="border-t border-elegant/10 px-5 py-4 text-sm leading-7 text-elegant/68">
+                          {faq.a}
+                        </p>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      <footer className="border-t border-elegant/10 bg-white py-8">
+        <div className="mx-auto flex max-w-7xl flex-col gap-4 px-5 text-sm text-elegant/60 sm:px-8 md:flex-row md:items-center md:justify-between">
+          <p className="font-semibold">&copy; {new Date().getFullYear()} Ayunikah. All rights reserved.</p>
+          <div className="flex gap-5 font-bold">
+            <Link href="/login" className="hover:text-elegant">Log in</Link>
+            <Link href="/register" className="hover:text-elegant">Register</Link>
           </div>
         </div>
       </footer>

@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Heart, Mail, Lock, Eye, EyeOff, ArrowRight } from 'lucide-react';
+import { Heart, Mail, Lock, Eye, EyeOff, ArrowRight, ShieldCheck } from 'lucide-react';
 import { useAuth } from '../../context/auth-context';
 
 export default function LoginPage() {
@@ -21,21 +21,23 @@ export default function LoginPage() {
     e.preventDefault();
     setError('');
     
-    if (!email.trim() || !password.trim()) {
+    const normalizedEmail = email.trim().toLowerCase();
+
+    if (!normalizedEmail || !password.trim()) {
       setError('Please fill in all details.');
       return;
     }
     
     setLoading(true);
     try {
-      const success = await login(email, password);
+      const success = await login(normalizedEmail, password);
       if (!success) {
-        setError('Invalid credentials, please try again.');
+        setError('We could not find that account. Check your details or register first.');
         return;
       }
       router.replace('/dashboard');
     } catch (err) {
-      setError('Invalid credentials, please try again.');
+      setError('We could not sign you in right now. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -43,10 +45,6 @@ export default function LoginPage() {
 
   return (
     <main className="min-h-screen w-full flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Floating Sparkles & Hearts */}
-      <div className="absolute top-20 left-10 w-24 h-24 bg-blush-200/20 rounded-full blur-2xl animate-float" style={{ animationDelay: '0s' }} />
-      <div className="absolute bottom-20 right-10 w-32 h-32 bg-lavender-200/20 rounded-full blur-3xl animate-float" style={{ animationDelay: '2s' }} />
-
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
@@ -65,7 +63,12 @@ export default function LoginPage() {
           
           <h1 className="text-2xl font-bold tracking-wide text-elegant leading-none">Ayunikah</h1>
           <p className="text-xs text-rosegold-400 font-semibold tracking-wider uppercase mt-1">Wedding Prep Suite</p>
-          <p className="text-xs text-elegant/60 mt-3">Welcome back! Sign in to prepare your future.</p>
+          <p className="text-xs text-elegant/60 mt-3">Welcome back. Sign in to continue your shared planning workspace.</p>
+        </div>
+
+        <div className="mb-5 flex items-start gap-3 rounded-2xl border border-elegant/10 bg-white/65 p-3 text-xs text-elegant/65">
+          <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-rosegold-400" />
+          <p>Use the same email and password you registered with. Local accounts are saved in this browser until Supabase is connected.</p>
         </div>
 
         {/* Error Alert */}
@@ -133,7 +136,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-rosegold-400 hover:bg-rosegold-500 text-white rounded-2xl py-3.5 text-xs font-bold transition-all shadow-md shadow-rosegold-200/30 flex items-center justify-center gap-2 glowing-btn"
+            className="w-full bg-rosegold-400 hover:bg-rosegold-500 disabled:opacity-60 disabled:hover:bg-rosegold-400 text-white rounded-2xl py-3.5 text-xs font-bold transition-all shadow-md shadow-rosegold-200/30 flex items-center justify-center gap-2 glowing-btn"
           >
             {loading ? (
               <span className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />

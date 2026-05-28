@@ -40,6 +40,14 @@ const saveLocalAccounts = (accounts: LocalAccount[]) => {
   localStorage.setItem(LOCAL_ACCOUNTS_KEY, JSON.stringify(accounts));
 };
 
+const createLocalId = () => {
+  if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
+    return crypto.randomUUID();
+  }
+
+  return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+};
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -70,11 +78,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       const storedUser = localStorage.getItem(LOCAL_SESSION_KEY);
       if (storedUser) {
-        const parsedUser = JSON.parse(storedUser);
-        if (parsedUser?.id === 'demo-user-123') {
+        try {
+          const parsedUser = JSON.parse(storedUser);
+          if (parsedUser?.id === 'demo-user-123') {
+            localStorage.removeItem(LOCAL_SESSION_KEY);
+          } else {
+            setUser(parsedUser);
+          }
+        } catch {
           localStorage.removeItem(LOCAL_SESSION_KEY);
-        } else {
-          setUser(parsedUser);
         }
       }
       setIsLoading(false);
@@ -101,9 +113,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (email: string, password: string): Promise<boolean> => {
     setIsLoading(true);
+    const normalizedEmail = email.trim().toLowerCase();
 
     if (isSupabaseConfigured && supabase) {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data, error } = await supabase.auth.signInWithPassword({ email: normalizedEmail, password });
       setIsLoading(false);
 
       if (error || !data.session?.user?.email) return false;
@@ -112,7 +125,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return true;
     }
 
-    const normalizedEmail = email.trim().toLowerCase();
     const account = getLocalAccounts().find(
       (item) => item.email === normalizedEmail && item.password === password
     );
@@ -131,9 +143,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const register = async (email: string, password: string): Promise<boolean> => {
     setIsLoading(true);
+    const normalizedEmail = email.trim().toLowerCase();
 
     if (isSupabaseConfigured && supabase) {
-      const { data, error } = await supabase.auth.signUp({ email, password });
+      const { data, error } = await supabase.auth.signUp({ email: normalizedEmail, password });
 
       if (error || !data.user?.email) {
         setIsLoading(false);
@@ -146,7 +159,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return true;
       }
 
-      const signIn = await supabase.auth.signInWithPassword({ email, password });
+      const signIn = await supabase.auth.signInWithPassword({ email: normalizedEmail, password });
       setIsLoading(false);
 
       if (signIn.error || !signIn.data.session?.user?.email) return false;
@@ -155,7 +168,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return true;
     }
 
-    const normalizedEmail = email.trim().toLowerCase();
     const accounts = getLocalAccounts();
 
     if (accounts.some((account) => account.email === normalizedEmail)) {
@@ -163,7 +175,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return false;
     }
 
-    const id = `local-user-${crypto.randomUUID()}`;
+    const id = `local-user-${createLocalId()}`;
     const session = { id, email: normalizedEmail, coupleId: `local-couple-${id}` };
     saveLocalAccounts([...accounts, { ...session, password }]);
     localStorage.setItem(LOCAL_SESSION_KEY, JSON.stringify(session));
