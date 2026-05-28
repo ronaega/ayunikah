@@ -182,10 +182,10 @@ export const BudgetPage: React.FC = () => {
           </p>
         </div>
 
-        <div className="flex items-center gap-3 shrink-0">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0 w-full sm:w-auto">
           <button
             onClick={() => window.print()}
-            className="px-4 py-3 glass text-elegant hover:bg-blush-100/25 rounded-2xl text-xs font-bold border border-blush-200/30 flex items-center gap-1.5 transition-colors"
+            className="px-4 py-3 glass text-elegant hover:bg-blush-100/25 rounded-2xl text-xs font-bold border border-blush-200/30 flex items-center justify-center gap-1.5 transition-colors"
           >
             <Printer className="w-4 h-4 text-rosegold-400" />
             <span>Print Sheet</span>
@@ -193,7 +193,7 @@ export const BudgetPage: React.FC = () => {
           
           <button
             onClick={() => setShowAddForm(true)}
-            className="px-5 py-3 bg-rosegold-400 hover:bg-rosegold-500 text-white rounded-2xl text-xs font-bold shadow-md shadow-rosegold-200/30 flex items-center gap-1.5 transition-all glowing-btn"
+            className="px-5 py-3 bg-rosegold-400 hover:bg-rosegold-500 text-white rounded-2xl text-xs font-bold shadow-md shadow-rosegold-200/30 flex items-center justify-center gap-1.5 transition-all glowing-btn"
           >
             <Plus className="w-4 h-4" />
             <span>Add Budget Item</span>
@@ -446,7 +446,7 @@ export const BudgetPage: React.FC = () => {
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="text-[9px] uppercase font-bold text-elegant/60 tracking-wider block mb-1">Category</label>
                     <select
@@ -469,7 +469,7 @@ export const BudgetPage: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="text-[9px] uppercase font-bold text-elegant/60 tracking-wider block mb-1">Estimated Cost (IDR)</label>
                     <input

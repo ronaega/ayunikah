@@ -44,6 +44,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  const setSupabaseUser = (sessionUser: { id: string; email?: string } | null | undefined) => {
+    setUser(sessionUser?.email ? {
+      id: sessionUser.id,
+      email: sessionUser.email,
+      coupleId: sessionUser.id,
+    } : null);
+  };
+
   useEffect(() => {
     let isMounted = true;
 
@@ -53,11 +61,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const sessionUser = data.session?.user;
 
         if (isMounted) {
-          setUser(sessionUser?.email ? {
-            id: sessionUser.id,
-            email: sessionUser.email,
-            coupleId: sessionUser.id,
-          } : null);
+          setSupabaseUser(sessionUser);
           setIsLoading(false);
         }
 
@@ -80,12 +84,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     if (isSupabaseConfigured && supabase) {
       const { data } = supabase.auth.onAuthStateChange((_event, session) => {
-        const sessionUser = session?.user;
-        setUser(sessionUser?.email ? {
-          id: sessionUser.id,
-          email: sessionUser.email,
-          coupleId: sessionUser.id,
-        } : null);
+        setSupabaseUser(session?.user);
         setIsLoading(false);
       });
 
@@ -107,13 +106,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       setIsLoading(false);
 
-      if (error || !data.user?.email) return false;
+      if (error || !data.session?.user?.email) return false;
 
-      setUser({
-        id: data.user.id,
-        email: data.user.email,
-        coupleId: data.user.id,
-      });
+      setSupabaseUser(data.session.user);
       return true;
     }
 
@@ -139,15 +134,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     if (isSupabaseConfigured && supabase) {
       const { data, error } = await supabase.auth.signUp({ email, password });
+
+      if (error || !data.user?.email) {
+        setIsLoading(false);
+        return false;
+      }
+
+      if (data.session?.user?.email) {
+        setSupabaseUser(data.session.user);
+        setIsLoading(false);
+        return true;
+      }
+
+      const signIn = await supabase.auth.signInWithPassword({ email, password });
       setIsLoading(false);
 
-      if (error || !data.user?.email) return false;
+      if (signIn.error || !signIn.data.session?.user?.email) return false;
 
-      setUser({
-        id: data.user.id,
-        email: data.user.email,
-        coupleId: data.user.id,
-      });
+      setSupabaseUser(signIn.data.session.user);
       return true;
     }
 

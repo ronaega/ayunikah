@@ -68,6 +68,8 @@ export const MainBoard: React.FC = () => {
   const totalSpent = budgetItems.reduce((acc, curr) => acc + curr.actualBudget, 0);
   const totalEstimated = budgetItems.reduce((acc, curr) => acc + curr.estimatedBudget, 0);
   const attendingCount = invitees.filter(i => i.rsvpStatus === 'Attending').length;
+  const coupleLabel = [bride.nickname || bride.fullName, groom.nickname || groom.fullName].filter(Boolean).join(' & ') || 'New Couple';
+  const groomLabel = groom.nickname || groom.fullName || 'the groom';
 
   // Custom Recharts colors
   const COLORS = ['#F7D6D0', '#C79B8B', '#DCCFED', '#F6C7B6', '#E5D1C9'];
@@ -81,14 +83,14 @@ export const MainBoard: React.FC = () => {
             <Sparkles className="w-3.5 h-3.5" />
             Cohesive Union Workspace
           </span>
-          <h2 className="text-2xl font-black text-elegant">Happy Planning, {bride.nickname} & {groom.nickname}! 💖</h2>
+          <h2 className="text-xl sm:text-2xl font-black text-elegant">Happy Planning, {coupleLabel}!</h2>
           <p className="text-xs text-elegant/70 max-w-md leading-relaxed">
             Every paid bill, completed course, and guest RSVP confirmation is automatically synced to track your marital readiness.
           </p>
         </div>
 
         {/* Global Countdown Widget */}
-        <div className="glass rounded-2xl px-5 py-4 border border-blush-200/30 flex items-center gap-4 bg-white/50 shrink-0">
+        <div className="glass rounded-2xl px-4 sm:px-5 py-4 border border-blush-200/30 flex items-center gap-3 sm:gap-4 bg-white/50 shrink-0 w-full sm:w-auto">
           <Calendar className="w-8 h-8 text-rosegold-400 stroke-[1.5px]" />
           <div>
             <span className="text-[9px] uppercase font-semibold text-rosegold-400 tracking-wider">Locked Wedding Date</span>
@@ -214,7 +216,7 @@ export const MainBoard: React.FC = () => {
             </div>
             <div className="my-3">
               <p className="text-xs font-bold text-elegant leading-relaxed">
-                "Hi Ronal! Your Groom course has 3 unfinished lessons. Setting aside 15 minutes today to complete your study will increase readiness by **4.5%**!"
+                {`Hi ${groomLabel}! Your groom course still has lessons to finish. Setting aside 15 minutes today can keep your preparation moving steadily.`}
               </p>
             </div>
             <div className="text-[10px] text-rosegold-400 font-bold flex items-center gap-1 border-t border-blush-200/20 pt-3 cursor-pointer">

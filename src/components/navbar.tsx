@@ -118,13 +118,13 @@ export const Navbar: React.FC = () => {
   };
 
   return (
-    <header className="w-full flex items-center justify-between px-6 py-4 glass rounded-3xl mb-6 select-none z-20 relative">
+    <header className="w-full flex items-center justify-between gap-2 px-3 sm:px-6 py-3 sm:py-4 glass rounded-3xl mb-4 sm:mb-6 select-none z-20 relative">
       {/* Background Wedding Music Tag (Loaded silently) */}
       <audio id="wedding-music" loop src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" />
 
       {/* Left: Romantic Wedding Countdown Clock */}
-      <div className="flex items-center gap-3">
-        <div className="w-9 h-9 rounded-xl bg-blush-100 flex items-center justify-center text-rosegold-400 border border-blush-200/50">
+      <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+        <div className="w-9 h-9 rounded-xl bg-blush-100 flex items-center justify-center text-rosegold-400 border border-blush-200/50 shrink-0">
           <Calendar className="w-4 h-4 animate-bounce" />
         </div>
         <div className="hidden sm:block">
@@ -133,7 +133,7 @@ export const Navbar: React.FC = () => {
             {countdown.days}d : {countdown.hours}h : {countdown.minutes}m Left
           </p>
         </div>
-        <div className="sm:hidden text-xs font-bold text-elegant">
+        <div className="sm:hidden text-[10px] font-bold text-elegant whitespace-nowrap">
           {countdown.days}d left
         </div>
       </div>
@@ -145,12 +145,12 @@ export const Navbar: React.FC = () => {
       </div>
 
       {/* Right Controls */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-1 sm:gap-3 md:gap-4 shrink-0">
         {/* Background Music Toggle */}
         <button
           onClick={toggleMusic}
           title={musicPlaying ? "Pause romantic soundtrack" : "Play romantic soundtrack"}
-          className="p-2.5 rounded-xl hover:bg-blush-100/30 text-elegant/70 hover:text-elegant transition-colors"
+          className="hidden sm:block p-2.5 rounded-xl hover:bg-blush-100/30 text-elegant/70 hover:text-elegant transition-colors"
         >
           {musicPlaying ? <Volume2 className="w-4.5 h-4.5 text-rosegold-400 animate-pulse" /> : <VolumeX className="w-4.5 h-4.5" />}
         </button>
@@ -158,7 +158,7 @@ export const Navbar: React.FC = () => {
         {/* Dark Mode Toggle */}
         <button
           onClick={toggleTheme}
-          className="p-2.5 rounded-xl hover:bg-blush-100/30 text-elegant/70 hover:text-elegant transition-colors"
+          className="p-2 sm:p-2.5 rounded-xl hover:bg-blush-100/30 text-elegant/70 hover:text-elegant transition-colors"
           aria-label="Toggle Theme"
         >
           {darkMode ? <Sun className="w-4.5 h-4.5 text-amber-400" /> : <Moon className="w-4.5 h-4.5" />}
@@ -168,7 +168,7 @@ export const Navbar: React.FC = () => {
         <div className="relative" ref={notificationRef}>
           <button
             onClick={() => setShowNotifications(!showNotifications)}
-            className="p-2.5 rounded-xl hover:bg-blush-100/30 text-elegant/70 hover:text-elegant transition-colors relative"
+            className="p-2 sm:p-2.5 rounded-xl hover:bg-blush-100/30 text-elegant/70 hover:text-elegant transition-colors relative"
           >
             <Bell className="w-4.5 h-4.5" />
             {unreadCount > 0 && (
@@ -184,7 +184,7 @@ export const Navbar: React.FC = () => {
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 15 }}
-                className="absolute right-0 mt-3 w-80 glass rounded-2xl shadow-xl p-4 overflow-hidden z-50 border border-blush-200/50"
+                className="fixed sm:absolute right-3 sm:right-0 left-3 sm:left-auto mt-3 sm:w-80 glass rounded-2xl shadow-xl p-4 overflow-hidden z-50 border border-blush-200/50"
               >
                 <div className="flex items-center justify-between pb-3 border-b border-blush-200/20 mb-2">
                   <h3 className="text-xs font-bold text-elegant">Notification Feed</h3>
@@ -237,7 +237,7 @@ export const Navbar: React.FC = () => {
         <div className="relative" ref={profileRef}>
           <button
             onClick={() => setShowProfileMenu(!showProfileMenu)}
-            className="flex items-center gap-2 p-1.5 pr-3 rounded-2xl hover:bg-blush-100/30 text-elegant transition-colors"
+            className="flex items-center gap-2 p-1.5 sm:pr-3 rounded-2xl hover:bg-blush-100/30 text-elegant transition-colors"
           >
             <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-blush-200 to-lavender-200 text-elegant font-bold flex items-center justify-center text-xs shadow-sm">
               {profileInitial}

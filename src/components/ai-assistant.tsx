@@ -62,8 +62,60 @@ export const AIAssistant: React.FC = () => {
     setInputValue('');
     setIsTyping(true);
 
-    // Simulate smart AI typing response
-    setTimeout(() => {
+    void (async () => {
+      try {
+        const response = await fetch('/api/ai', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            prompt: userMsg.text,
+            coupleState: {
+              overallProgress,
+              weddingDate,
+              profiles: { groom, bride },
+              budget: {
+                totalItems: budgetItems.length,
+                paidItems: budgetItems.filter(item => item.status === 'Paid').length,
+                unpaidItems: budgetItems.filter(item => item.status === 'Unpaid').length,
+                totalActual: budgetItems.reduce((acc, curr) => acc + curr.actualBudget, 0),
+              },
+              courses: courses.map(course => ({
+                title: course.title,
+                category: course.category,
+                completed: course.completed,
+                completedLessons: course.lessons.filter(lesson => lesson.completed).length,
+                totalLessons: course.lessons.length,
+              })),
+              invitees: {
+                total: invitees.length,
+                attending: invitees.filter(item => item.rsvpStatus === 'Attending').length,
+                pending: invitees.filter(item => item.rsvpStatus === 'Pending').length,
+              },
+              invitation,
+            },
+          }),
+        });
+
+        const data = await response.json();
+        if (!response.ok || !data.reply) throw new Error(data.error || 'Assistant request failed');
+
+        const aiMsg: Message = {
+          id: `ai-${Date.now()}`,
+          sender: 'ai',
+          text: data.reply,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        };
+
+        setMessages(prev => [...prev, aiMsg]);
+        setIsTyping(false);
+      } catch {
+        fallbackReply(query);
+      }
+    })();
+
+    function fallbackReply(fallbackQuery: string) {
+
+      // Local fallback for offline development or temporary API outages.
       let aiText = "I hear you! Preparing for marriage is a beautiful and emotional process. Ask me about your 'budget', 'progress', 'courses', 'invitation', or say 'wisdom' for a sweet marriage quote!";
       
       const totalBudget = budgetItems.reduce((acc, curr) => acc + curr.actualBudget, 0);
@@ -77,7 +129,7 @@ export const AIAssistant: React.FC = () => {
       const attendingCount = invitees.filter(i => i.rsvpStatus === 'Attending').length;
 
       // Rule-based context-aware responses
-      if (query.includes('progress') || query.includes('ready') || query.includes('completion')) {
+      if (fallbackQuery.includes('progress') || fallbackQuery.includes('ready') || fallbackQuery.includes('completion')) {
         aiText = `Your overall preparation readiness is **${overallProgress.toFixed(0)}%**. Here's your component breakdown:
 - 💰 Budget paid status: **${paidItemsCount}/${budgetItems.length} items**
 - 📚 Marriage course completion: **${completedLessons}/${totalLessons} lessons**
@@ -85,7 +137,7 @@ export const AIAssistant: React.FC = () => {
 - 🤵👰 Personal profile: **${groom.fullName || bride.fullName ? 'In progress' : 'Not filled yet'}**
 Keep up the good work! Step-by-step you are getting closer to your big day!`;
       } 
-      else if (query.includes('budget') || query.includes('cost') || query.includes('money') || query.includes('expense')) {
+      else if (fallbackQuery.includes('budget') || fallbackQuery.includes('cost') || fallbackQuery.includes('money') || fallbackQuery.includes('expense')) {
         aiText = `Here is your dynamic financial audit:
 - Total allocated wedding budget is: **${formatCurrency(totalBudget)}**
 - You have paid **${paidItemsCount}** items in full.
@@ -93,32 +145,32 @@ Keep up the good work! Step-by-step you are getting closer to your big day!`;
 - Next due item is **"${budgetItems.find(i => i.status === 'Unpaid')?.itemName || 'None'}"**.
 I recommend checking the Budget Sheet to review category pie charts and ensure savings are balanced!`;
       }
-      else if (query.includes('course') || query.includes('learn') || query.includes('knowledge') || query.includes('lesson')) {
+      else if (fallbackQuery.includes('course') || fallbackQuery.includes('learn') || fallbackQuery.includes('knowledge') || fallbackQuery.includes('lesson')) {
         aiText = `You have completed **${completedLessons} out of ${totalLessons} lessons** (${((completedLessons/totalLessons)*100).toFixed(0)}%).
 - ${groomLabel} can take: *"${courses.find(c => c.category === 'Groom Only')?.title}"*
 - ${brideLabel} can take: *"${courses.find(c => c.category === 'Bride Only')?.title}"*
 I highly recommend sitting down together this weekend to complete the lesson: *"${courses.flatMap(c => c.lessons).find(l => !l.completed)?.title || 'Constructive Conflict'}"* under the Couple Together category. It's a wonderful intimacy booster!`;
       }
-      else if (query.includes('invite') || query.includes('guest') || query.includes('rsvp')) {
+      else if (fallbackQuery.includes('invite') || fallbackQuery.includes('guest') || fallbackQuery.includes('rsvp')) {
         aiText = `You have tracked **${guestCount} guests** on your invitation list.
 - **${attendingCount}** have confirmed they are **Attending**.
 - **${invitees.filter(i => i.rsvpStatus === 'Declined').length}** declined.
 - **${invitees.filter(i => i.rsvpStatus === 'Pending').length}** are still pending responses.
 You can use our WhatsApp sharing tool inside the Invitation tab to prompt guests for RSVP confirmations!`;
       }
-      else if (query.includes('wisdom') || query.includes('quote') || query.includes('inspire') || query.includes('love')) {
+      else if (fallbackQuery.includes('wisdom') || fallbackQuery.includes('quote') || fallbackQuery.includes('inspire') || fallbackQuery.includes('love')) {
         const randomQuote = motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)];
         aiText = `Here is a romantic piece of wisdom for you today:
 > *"${randomQuote}"*
 Remember, marriage is a commitment of love and a daily choice to lift each other up. 💖`;
       }
-      else if (query.includes('groom')) {
+      else if (fallbackQuery.includes('groom')) {
         aiText = `${groomLabel} can use the profile card to add personal details, a photo, and private notes. The groom-focused course is: *"${courses.find(c => c.category === 'Groom Only')?.title}"*.`;
       }
-      else if (query.includes('bride')) {
+      else if (fallbackQuery.includes('bride')) {
         aiText = `${brideLabel} can use the profile card to add personal details, a photo, and private notes. The bride-focused course is: *"${courses.find(c => c.category === 'Bride Only')?.title}"*.`;
       }
-      else if (query.includes('hello') || query.includes('hi') || query.includes('hey') || query.includes('help')) {
+      else if (fallbackQuery.includes('hello') || fallbackQuery.includes('hi') || fallbackQuery.includes('hey') || fallbackQuery.includes('help')) {
         aiText = `Hello! How can I assist you in your marriage journey today? Ask me about:
 - **"budget"** to audit expenses
 - **"progress"** to check overall readiness
@@ -136,18 +188,18 @@ Remember, marriage is a commitment of love and a daily choice to lift each other
 
       setMessages(prev => [...prev, aiMsg]);
       setIsTyping(false);
-    }, 1200);
+    }
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end select-none no-print">
+    <div className="fixed bottom-24 right-4 md:bottom-6 md:right-6 z-50 flex flex-col items-end select-none no-print">
       <AnimatePresence>
         {isOpen && (
           <motion.div
             initial={{ opacity: 0, scale: 0.8, y: 50 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.8, y: 50 }}
-            className="w-[360px] h-[480px] glass rounded-3xl shadow-2xl flex flex-col mb-4 overflow-hidden border border-blush-200"
+            className="w-[calc(100vw-2rem)] sm:w-[360px] h-[min(480px,calc(100vh-8rem))] glass rounded-3xl shadow-2xl flex flex-col mb-4 overflow-hidden border border-blush-200"
           >
             {/* Chat Header */}
             <div className="bg-gradient-to-r from-blush-200/50 via-cream-100/40 to-lavender-200/50 p-4 border-b border-blush-200/20 flex items-center justify-between">

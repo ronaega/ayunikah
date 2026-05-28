@@ -35,10 +35,10 @@ export default function RegisterPage() {
     try {
       const success = await register(email, password);
       if (!success) {
-        setError('Registration failed. This email may already be registered or Supabase may need email confirmation.');
+        setError('Registration failed. This email may already be registered, or email confirmation is still enabled in Supabase.');
         return;
       }
-      router.push('/dashboard');
+      router.replace('/dashboard');
     } catch (err) {
       setError('Registration failed, please try again.');
     } finally {

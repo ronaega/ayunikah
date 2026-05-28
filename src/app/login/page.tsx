@@ -33,7 +33,7 @@ export default function LoginPage() {
         setError('Invalid credentials, please try again.');
         return;
       }
-      router.push('/dashboard');
+      router.replace('/dashboard');
     } catch (err) {
       setError('Invalid credentials, please try again.');
     } finally {

@@ -65,7 +65,7 @@ function DashboardWorkspace() {
       <Sidebar />
 
       {/* 2. Right Workspace Panel */}
-      <main className="flex-1 md:ml-72 min-h-screen p-4 md:p-6 pb-24 md:pb-6 flex flex-col">
+      <main className="flex-1 md:ml-72 min-h-screen w-full min-w-0 p-3 sm:p-4 md:p-6 pb-24 md:pb-6 flex flex-col overflow-x-hidden">
         
         {/* Top Navbar Header */}
         <Navbar />

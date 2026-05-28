@@ -39,12 +39,24 @@
   padding: 0;
 }
 
+html,
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
 body {
   background-color: var(--app-bg);
   color: var(--app-fg);
   font-family: var(--font-poppins);
   transition: background-color 0.5s ease, color 0.5s ease;
   overflow-x: hidden;
+}
+
+[href*="base44"],
+[src*="base44"],
+[aria-label*="Edit with Base 44"] {
+  display: none !important;
 }
 
 h1, h2, h3, h4, h5, h6 {
