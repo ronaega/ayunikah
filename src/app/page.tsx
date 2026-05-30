@@ -11,9 +11,13 @@ import {
   Check,
   ChevronDown,
   Flower2,
+  Instagram,
   LayoutDashboard,
+  Mail,
   Menu,
   MessageCircleHeart,
+  MessageCircle,
+  Phone,
   PieChart,
   Send,
   Sparkles,
@@ -114,6 +118,22 @@ const faqs = [
   },
 ];
 
+function FacebookIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className={className} fill="currentColor">
+      <path d="M14.2 8.1V6.7c0-.7.5-.9.9-.9h2.1V2.3L14.3 2c-3.2 0-4.9 1.9-4.9 5.3v.8H6.8v3.9h2.6v9.9h4.1v-9.9h3.1l.5-3.9h-3Z" />
+    </svg>
+  );
+}
+
+function LinkedinIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className={className} fill="currentColor">
+      <path d="M6.8 8.9H3v12.2h3.8ZM4.9 3A2.2 2.2 0 1 0 5 7.4 2.2 2.2 0 0 0 4.9 3Zm16.2 11.4c0-3.3-1.8-4.9-4.2-4.9a3.6 3.6 0 0 0-3.3 1.8h-.1V8.9H9.9v12.2h3.8v-6c0-1.6.3-3.1 2.2-3.1s1.9 1.8 1.9 3.2v5.9h3.8Z" />
+    </svg>
+  );
+}
+
 function LogoMark({ label = true }: { label?: boolean }) {
   return (
     <span className="flex items-center gap-3">
@@ -129,6 +149,15 @@ function LogoMark({ label = true }: { label?: boolean }) {
     </span>
   );
 }
+
+const socialLinks = [
+  { label: "Phone", href: "tel:", icon: Phone },
+  { label: "WhatsApp", href: "https://wa.me/", icon: MessageCircle },
+  { label: "Gmail", href: "mailto:", icon: Mail },
+  { label: "Facebook", href: "https://www.facebook.com/", icon: FacebookIcon },
+  { label: "Instagram", href: "https://www.instagram.com/", icon: Instagram },
+  { label: "LinkedIn", href: "https://www.linkedin.com/", icon: LinkedinIcon },
+];
 
 export default function LandingPage() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -546,22 +575,79 @@ export default function LandingPage() {
         </section>
       </div>
 
-      <footer className="mt-auto border-t border-[#F7D6D0]/70 bg-[#FFF3EE] py-8">
-        <div className="mx-auto flex max-w-7xl flex-col gap-5 px-5 sm:px-8 md:flex-row md:items-center md:justify-between">
-          <div>
-            <LogoMark />
-            <p className="mt-3 text-sm font-medium text-[#4B3B39]/62">
-              Made with love by Lidya Ayu Sukamawandira
-            </p>
+      <footer className="mt-auto border-t border-[#F7D6D0]/70 bg-[#FFF8F1]">
+        <div className="mx-auto max-w-7xl px-5 py-8 sm:px-8 sm:py-10">
+          <div className="overflow-hidden rounded-lg border border-white/80 bg-[#F7D6D0]/45 p-6 shadow-xl shadow-[#F7D6D0]/25 sm:p-8 lg:p-10">
+            <div className="grid gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:items-end">
+              <div>
+                <p className="text-xs font-black uppercase tracking-[0.18em] text-[#8A655C]">Begin beautifully</p>
+                <h2 className="mt-3 max-w-2xl font-playfair text-4xl font-bold leading-tight text-[#4B3B39] sm:text-5xl">
+                  Ready to prepare your beautiful future together?
+                </h2>
+              </div>
+              <div className="space-y-4">
+                {["Plan your wedding with clarity", "Track readiness with gentle progress", "Let AI guide the next loving step"].map((item) => (
+                  <div key={item} className="flex items-center gap-3 text-sm font-bold text-[#4B3B39]/72">
+                    <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-white/65 text-[#C79B8B]">
+                      <ArrowRight className="h-4 w-4" />
+                    </span>
+                    <span>{item}</span>
+                  </div>
+                ))}
+                <Link
+                  href="/register"
+                  className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#C79B8B] px-5 py-3 text-sm font-bold text-white shadow-sm shadow-[#C79B8B]/25 transition hover:-translate-y-0.5 hover:bg-[#b88978]"
+                >
+                  Get Started
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </div>
+            </div>
           </div>
-          <div className="flex flex-wrap items-center gap-3">
-            <Link href="/login" className="rounded-lg border border-[#F7D6D0] bg-white/65 px-4 py-2 text-sm font-bold text-[#4B3B39] hover:bg-white">
-              Login
-            </Link>
-            <Link href="/register" className="rounded-lg bg-[#C79B8B] px-4 py-2 text-sm font-bold text-white hover:bg-[#b88978]">
-              Get Started
-            </Link>
-            <p className="w-full text-xs text-[#4B3B39]/45 md:w-auto">&copy; {new Date().getFullYear()} Ayunikah</p>
+
+          <div className="grid gap-8 border-b border-[#F7D6D0]/60 py-8 md:grid-cols-[1.2fr_1fr_1fr] md:items-start">
+            <div>
+              <LogoMark />
+              <p className="mt-4 max-w-sm text-sm leading-6 text-[#4B3B39]/62">
+                A soft AI-powered marriage preparation dashboard for budgeting, learning, invitations, and relationship readiness.
+              </p>
+            </div>
+
+            <nav aria-label="Footer navigation" className="grid grid-cols-2 gap-3 text-sm font-bold text-[#4B3B39]/68 sm:grid-cols-3 md:justify-self-center">
+              {navItems.map(([label, href]) => (
+                <a key={href} href={href} className="hover:text-[#C79B8B]">
+                  {label}
+                </a>
+              ))}
+              <Link href="/login" className="hover:text-[#C79B8B]">
+                Login
+              </Link>
+            </nav>
+
+            <div className="md:justify-self-end">
+              <p className="text-xs font-black uppercase tracking-[0.18em] text-[#8A655C]">Social</p>
+              <div className="mt-4 flex flex-wrap gap-2">
+                {socialLinks.map((social) => {
+                  const Icon = social.icon;
+
+                  return (
+                    <a
+                      key={social.label}
+                      href={social.href}
+                      aria-label={social.label}
+                      className="grid h-10 w-10 place-items-center rounded-lg border border-[#F7D6D0]/70 bg-white/70 text-[#8A655C] shadow-sm shadow-[#F7D6D0]/20 transition hover:-translate-y-0.5 hover:border-[#C79B8B]/50 hover:text-[#C79B8B]"
+                    >
+                      <Icon className="h-4 w-4" />
+                    </a>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-2 pt-5 text-xs font-semibold text-[#4B3B39]/48 sm:flex-row sm:items-center sm:justify-between">
+            <p>&copy; {new Date().getFullYear()} Ayunikah. All rights reserved.</p>
+            <p>Made with love by Lidya Ayu Sukamawandira</p>
           </div>
         </div>
       </footer>
