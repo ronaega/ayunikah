@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 
 const navItems = [
+  ["About Us", "/about"],
   ["Features", "#features"],
   ["Preview", "#preview"],
   ["AI", "#ai"],
@@ -575,20 +576,20 @@ export default function LandingPage() {
         </section>
       </div>
 
-      <footer className="mt-auto border-t border-[#F7D6D0]/70 bg-[#FFF8F1]">
-        <div className="mx-auto max-w-7xl px-5 py-8 sm:px-8 sm:py-10">
-          <div className="overflow-hidden rounded-lg border border-white/80 bg-[#F7D6D0]/45 p-6 shadow-xl shadow-[#F7D6D0]/25 sm:p-8 lg:p-10">
-            <div className="grid gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:items-end">
+      <footer className="mt-auto bg-[#FFF8F1]">
+        <div className="mx-auto max-w-7xl px-5 pt-8 sm:px-8 sm:pt-10">
+          <div className="rounded-lg border border-[#F7D6D0]/65 bg-[#F7D6D0]/42 px-6 py-8 shadow-sm shadow-[#F7D6D0]/35 sm:px-10 sm:py-10">
+            <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
               <div>
-                <p className="text-xs font-black uppercase tracking-[0.18em] text-[#8A655C]">Begin beautifully</p>
-                <h2 className="mt-3 max-w-2xl font-playfair text-4xl font-bold leading-tight text-[#4B3B39] sm:text-5xl">
+                <p className="text-xs font-black uppercase tracking-[0.24em] text-[#8A655C]">Begin beautifully</p>
+                <h2 className="mt-4 max-w-2xl font-playfair text-4xl font-bold leading-[1.05] text-[#4B3B39] sm:text-5xl">
                   Ready to prepare your beautiful future together?
                 </h2>
               </div>
-              <div className="space-y-4">
+              <div className="space-y-4 lg:justify-self-end">
                 {["Plan your wedding with clarity", "Track readiness with gentle progress", "Let AI guide the next loving step"].map((item) => (
-                  <div key={item} className="flex items-center gap-3 text-sm font-bold text-[#4B3B39]/72">
-                    <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-white/65 text-[#C79B8B]">
+                  <div key={item} className="flex items-center gap-3 text-sm font-bold text-[#4B3B39]/76">
+                    <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-[#FFF8F1]/85 text-[#C79B8B]">
                       <ArrowRight className="h-4 w-4" />
                     </span>
                     <span>{item}</span>
@@ -596,7 +597,7 @@ export default function LandingPage() {
                 ))}
                 <Link
                   href="/register"
-                  className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#C79B8B] px-5 py-3 text-sm font-bold text-white shadow-sm shadow-[#C79B8B]/25 transition hover:-translate-y-0.5 hover:bg-[#b88978]"
+                  className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#C79B8B] px-5 py-3 text-sm font-bold text-white shadow-sm shadow-[#C79B8B]/25 transition hover:bg-[#b88978]"
                 >
                   Get Started
                   <ArrowRight className="h-4 w-4" />
@@ -605,15 +606,15 @@ export default function LandingPage() {
             </div>
           </div>
 
-          <div className="grid gap-8 border-b border-[#F7D6D0]/60 py-8 md:grid-cols-[1.2fr_1fr_1fr] md:items-start">
+          <div className="grid gap-9 border-b border-[#F7D6D0]/65 py-8 md:grid-cols-[1.35fr_0.9fr_1fr]">
             <div>
               <LogoMark />
-              <p className="mt-4 max-w-sm text-sm leading-6 text-[#4B3B39]/62">
+              <p className="mt-4 max-w-sm text-sm leading-6 text-[#4B3B39]/66">
                 A soft AI-powered marriage preparation dashboard for budgeting, learning, invitations, and relationship readiness.
               </p>
             </div>
 
-            <nav aria-label="Footer navigation" className="grid grid-cols-2 gap-3 text-sm font-bold text-[#4B3B39]/68 sm:grid-cols-3 md:justify-self-center">
+            <nav aria-label="Footer navigation" className="grid grid-cols-2 gap-x-8 gap-y-4 text-sm font-bold text-[#4B3B39]/74">
               {navItems.map(([label, href]) => (
                 <a key={href} href={href} className="hover:text-[#C79B8B]">
                   {label}
@@ -625,7 +626,7 @@ export default function LandingPage() {
             </nav>
 
             <div className="md:justify-self-end">
-              <p className="text-xs font-black uppercase tracking-[0.18em] text-[#8A655C]">Social</p>
+              <p className="text-xs font-black uppercase tracking-[0.24em] text-[#8A655C]">Social</p>
               <div className="mt-4 flex flex-wrap gap-2">
                 {socialLinks.map((social) => {
                   const Icon = social.icon;
@@ -635,7 +636,7 @@ export default function LandingPage() {
                       key={social.label}
                       href={social.href}
                       aria-label={social.label}
-                      className="grid h-10 w-10 place-items-center rounded-lg border border-[#F7D6D0]/70 bg-white/70 text-[#8A655C] shadow-sm shadow-[#F7D6D0]/20 transition hover:-translate-y-0.5 hover:border-[#C79B8B]/50 hover:text-[#C79B8B]"
+                      className="grid h-10 w-10 place-items-center rounded-lg border border-[#F7D6D0]/80 bg-white/70 text-[#8A655C] transition hover:border-[#C79B8B]/50 hover:text-[#C79B8B]"
                     >
                       <Icon className="h-4 w-4" />
                     </a>
@@ -645,7 +646,7 @@ export default function LandingPage() {
             </div>
           </div>
 
-          <div className="flex flex-col gap-2 pt-5 text-xs font-semibold text-[#4B3B39]/48 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-2 py-5 text-xs font-semibold text-[#4B3B39]/58 sm:flex-row sm:items-center sm:justify-between">
             <p>&copy; {new Date().getFullYear()} Ayunikah. All rights reserved.</p>
             <p>Made with love by Lidya Ayu Sukamawandira</p>
           </div>

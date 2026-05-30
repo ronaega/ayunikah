@@ -118,7 +118,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Beautiful Animated Particles */
 .floating-circle-1 {
-  position: absolute;
+  position: fixed;
   width: 400px;
   height: 400px;
   background: radial-gradient(circle, rgba(247, 214, 208, 0.35) 0%, rgba(255, 255, 255, 0) 70%);
@@ -129,7 +129,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .floating-circle-2 {
-  position: absolute;
+  position: fixed;
   width: 500px;
   height: 500px;
   background: radial-gradient(circle, rgba(220, 207, 237, 0.25) 0%, rgba(255, 255, 255, 0) 70%);

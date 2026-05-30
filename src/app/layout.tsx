@@ -10,6 +10,11 @@ export const metadata: Metadata = {
   description: "An elegant and romantic AI-powered companion designed to guide engaged couples through wedding budgeting, marriage readiness courses, RSVP tracking, and invitation building.",
   keywords: ["wedding planner", "marriage preparation", "AI wedding coordinator", "wedding budget tracker", "digital invitation builder", "Lidya Ayu Sukamawandira"],
   authors: [{ name: "Lidya Ayu Sukamawandira" }],
+  icons: {
+    icon: "/logo.png",
+    shortcut: "/logo.png",
+    apple: "/logo.png",
+  },
 };
 
 export const viewport: Viewport = {
